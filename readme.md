@@ -7,7 +7,7 @@ netns-helper provides some systemd services to help with the creation of network
 
 ## Run transmission-daemon inside a network namespace
 
-Write the following into "/etc/netns-helper/ns/torrents.conf":
+Write the following into `/etc/netns-helper/ns/torrents.conf`:
 
 ```sh
 MAC=<enter a mac address>
@@ -36,4 +36,4 @@ sudo systemctl daemon-reload
 sudo systemctl restart transmission-daemon.service
 ```
 
-transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations.
+transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can add `netns-helper-dhcp6@torrents.service` to `After=` and `Requires=` if you want to use DHCPv6.
