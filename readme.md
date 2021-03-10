@@ -1,7 +1,7 @@
 netns-helper
 ==============================
 
-netns-helper provides some systemd services to help with the creation of network namespaces useable by other services.
+netns-helper provides some systemd services to help with the creation of network namespaces usable by other services.
 
 ### Example
 
