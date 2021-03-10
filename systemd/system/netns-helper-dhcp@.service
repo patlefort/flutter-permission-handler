@@ -1,0 +1,15 @@
+[Unit]
+Description=Run dhclient in a network namespace.
+After=netns-helper@%i.service netns-helper-macvlan@%i.service
+BindsTo=netns-helper@%i.service
+
+[Service]
+Type=simple
+RuntimeDirectory=netns-helper-%i
+ConfigurationDirectory=netns-helper
+PIDFile=%t/netns-helper-%i/dhclient.pid
+NetworkNamespacePath=%t/netns-helper/%i
+ExecStart=dhclient -4 -d -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf /etc/netns-helper-ns/%i-dhclient.conf
+
+[Install]
+WantedBy=multi-user.target

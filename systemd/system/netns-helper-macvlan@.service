@@ -1,13 +1,13 @@
 [Unit]
 Description=Create a macvlan interface in a network namespace.
-After=netns_helper@%i.service
-BindsTo=netns_helper@%i.service
+After=netns-helper@%i.service
+BindsTo=netns-helper@%i.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=netns_helperctl %i macvlan create
-ExecStop=netns_helperctl %i macvlan delete
+ExecStart=netns-helperctl %i macvlan create
+ExecStop=netns-helperctl %i macvlan delete
 
 [Install]
 WantedBy=multi-user.target

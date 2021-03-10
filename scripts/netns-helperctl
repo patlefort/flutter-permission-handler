@@ -3,7 +3,7 @@
 NS=$1
 CMD=$2
 
-source /etc/netns_helper/ns/$NS.conf
+source /etc/netns-helper/ns/$NS.conf
 
 case $CMD in
 	netns)
@@ -42,7 +42,7 @@ case $CMD in
 				echo "Creating macvlan interface in $NS with $PARENT_IF."
 				echo "MAC address: $MAC"
 				
-				source /etc/netns_helper/ns/$NS-macvlan.conf
+				source /etc/netns-helper/ns/$NS-macvlan.conf
 
 				# Setup macvlan interface and link it to parent interface.
 				ip link add nm_$NS link $PARENT_IF address $MAC type macvlan mode bridge

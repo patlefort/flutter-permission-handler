@@ -2,11 +2,11 @@
 
 PREFIX=$1
 
-systemctl disable --now "netns_helper-dhcp@"
-systemctl disable --now "netns_helper-macvlan@"
-systemctl disable --now "netns_helper@"
+systemctl disable --now "netns-helper-dhcp@"
+systemctl disable --now "netns-helper-macvlan@"
+systemctl disable --now "netns-helper@"
 
-rm -f "$PREFIX/lib/systemd/system/netns_helper"/*
-rm -f "$PREFIX/bin/netns_helperctl"
+rm -f "$PREFIX/lib/systemd/system/netns-helper"/*
+rm -f "$PREFIX/bin/netns-helperctl"
 
 systemctl daemon-reload
