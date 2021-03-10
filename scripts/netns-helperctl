@@ -15,7 +15,10 @@ case $CMD in
 				# Setup network namespace and lo interface.
 				# It is meant to be run inside an anonymous network namespace of a systemd service.
 				ip link set lo up
+				ip netns add $NS
+				ip netns delete $NS
 				touch /var/run/netns/$NS
+				chmod 0444 /var/run/netns/$NS
 				mount --bind /proc/self/ns/net /var/run/netns/$NS
 
 				;;
