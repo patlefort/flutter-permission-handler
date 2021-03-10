@@ -1,0 +1,16 @@
+[Unit]
+Description=Start a new network namespace.
+After=syslog.target network.target
+JoinsNamespaceOf=netns_helper@%i.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=netns_helperctl %i netns create
+ExecStop=netns_helperctl %i netns delete
+
+PrivateNetwork=true
+
+[Install]
+WantedBy=multi-user.target

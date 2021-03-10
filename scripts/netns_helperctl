@@ -1,0 +1,94 @@
+#!/bin/bash
+
+NS=$1
+CMD=$2
+
+source /etc/netns_helper/ns/$NS.conf
+
+case $CMD in
+	netns)
+		
+		case $3 in
+			create)
+				echo "Creating network namespace $NS."
+
+				# Setup network namespace and lo interface.
+				# It is meant to be run inside an anonymous network namespace of a systemd service.
+				ip link set lo up
+				touch /var/run/netns/$NS
+				mount --bind /proc/self/ns/net /var/run/netns/$NS
+
+				;;
+
+			delete)
+				echo "Deleting network namespace $NS."
+
+				umount /var/run/netns/$NS
+				rm /var/run/netns/$NS
+
+				;;
+			*)
+				echo "Wrong command."
+				exit 1
+				;;
+		esac
+
+		;;
+
+	macvlan)
+
+		case $3 in
+			create)
+				echo "Creating macvlan interface in $NS with $PARENT_IF."
+				echo "MAC address: $MAC"
+				
+				source /etc/netns_helper/ns/$NS-macvlan.conf
+
+				# Setup macvlan interface and link it to parent interface.
+				ip link add nm_$NS link $PARENT_IF address $MAC type macvlan mode bridge
+				if [[ $? != 0 ]]; then
+					echo "Failed to create macvlan interface."
+					exit 1
+				fi
+
+				ip link set nm_$NS netns $NS
+				ip netns exec $NS ip link set nm_$NS up
+				
+				# Configure macvlan interface
+				if [ ! -z "$IPADDR4" ]; then
+					ip netns exec $NS ip address add $IPADDR4 dev nm_$NS
+				fi
+				
+				if [ ! -z "$DEFAULT_GATEWAY4" ]; then
+					ip route add default via $DEFAULT_GATEWAY4 dev nm_$NS onlink
+				fi
+				
+				if [ ! -z "$IPADDR6" ]; then
+					ip netns exec $NS ip -6 address add $IPADDR6 dev nm_$NS
+				fi
+				
+				if [ ! -z "$DEFAULT_GATEWAY6" ]; then
+					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$NS onlink
+				fi
+
+				mkdir -p /run/netmachine/$NS
+
+				;;
+			delete)
+				echo "Deleting macvlan interface in namespace $NS."
+				ip netns exec $NS ip link delete nm_$NS
+
+				;;
+			*)
+				echo "Wrong command."
+				exit 1
+				;;
+		esac
+
+		;;
+
+	*)
+		echo "Wrong command."
+		exit 1
+		;;
+esac
