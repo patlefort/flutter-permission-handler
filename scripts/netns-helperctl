@@ -3,6 +3,11 @@
 NS=$1
 CMD=$2
 
+if [[ ! -f /etc/netns-helper/ns/$NS.conf ]]; then
+	echo "File /etc/netns-helper/ns/$NS.conf not found, exiting."
+	exit 1
+fi
+
 source /etc/netns-helper/ns/$NS.conf
 
 case $CMD in
@@ -45,7 +50,9 @@ case $CMD in
 				echo "Creating macvlan interface in $NS with $PARENT_IF."
 				echo "MAC address: $MAC"
 				
-				source /etc/netns-helper/ns/$NS-macvlan.conf
+				if [[ -f /etc/netns-helper/ns/$NS-macvlan.conf ]]; then
+					source /etc/netns-helper/ns/$NS-macvlan.conf
+				fi
 
 				# Setup macvlan interface and link it to parent interface.
 				ip link add nm_$NS link $PARENT_IF address $MAC type macvlan mode bridge

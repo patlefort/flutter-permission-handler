@@ -22,6 +22,26 @@ sudo cp /etc/nsswitch.conf /etc/netns/torrents/nsswitch.conf
 
 Then modify `/etc/netns/torrents/nsswitch.conf` to remove `resolve` and put `dns` of not already present.
 
+If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it and explicitly tell your network manager to use systemd-resolved. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
+```
+[main]
+dns=systemd-resolved
+```
+
+Leaving it a symlink will cause your host's resolv.conf to be overwritten by dhclient inside the network namespace.
+
+If the `dhclient-script-wrapper` script is installed elsewhere than `/usr/bin`, you will have to edit `netns-helper-dhcp@.service` and `netns-helper-dhcp6@.service` (if you use dhcpv6):
+
+```sh
+sudo systemctl edit netns-helper-dhcp@.service
+```
+
+Enter the following:
+```
+[Service]
+Environment=DHCLIENT_SCRIPT_WRAPPER=<enter path to dhclient-script-wrapper>
+```
+
 Write the following into `/etc/netns-helper/ns/torrents.conf`:
 
 ```sh
