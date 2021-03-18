@@ -7,6 +7,21 @@ netns-helper provides some systemd services to help with the creation of network
 
 ## Run transmission-daemon inside a network namespace
 
+Create a file in `/etc/netns/torrents/resolv.conf`:
+
+```sh
+sudo mkdir -p /etc/netns/torrents
+sudo touch /etc/netns/torrents/resolv.conf
+```
+
+If your `/etc/nsswitch.conf` contains `resolve` or `resolve [!UNAVAIL=return]`:
+
+```sh
+sudo cp /etc/nsswitch.conf /etc/netns/torrents/nsswitch.conf
+```
+
+Then modify `/etc/netns/torrents/nsswitch.conf` to remove `resolve` and put `dns` of not already present.
+
 Write the following into `/etc/netns-helper/ns/torrents.conf`:
 
 ```sh
