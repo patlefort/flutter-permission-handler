@@ -11,7 +11,7 @@ ConfigurationDirectory=netns-helper
 PIDFile=%t/netns-helper-%i/dhclient.pid
 #NetworkNamespacePath=%t/netns/%i
 
-Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/bin/dhclient-script-wrapper
+Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/bin/netns-dhclient-script-wrapper
 
 ExecStart=ip netns exec %i dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf /etc/netns-helper-ns/%i-dhclient.conf
 

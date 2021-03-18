@@ -30,7 +30,7 @@ dns=systemd-resolved
 
 Leaving it a symlink will cause your host's resolv.conf to be overwritten by dhclient inside the network namespace.
 
-If the `dhclient-script-wrapper` script is installed elsewhere than `/usr/bin`, you will have to edit `netns-helper-dhcp@.service` and `netns-helper-dhcp6@.service` (if you use dhcpv6):
+If the `netns-dhclient-script-wrapper` script is installed elsewhere than `/usr/bin`, you will have to edit `netns-helper-dhcp@.service` and `netns-helper-dhcp6@.service` (if you use dhcpv6):
 
 ```sh
 sudo systemctl edit netns-helper-dhcp@.service
@@ -39,7 +39,7 @@ sudo systemctl edit netns-helper-dhcp@.service
 Enter the following:
 ```
 [Service]
-Environment=DHCLIENT_SCRIPT_WRAPPER=<enter path to dhclient-script-wrapper>
+Environment=DHCLIENT_SCRIPT_WRAPPER=<enter path to netns-dhclient-script-wrapper>
 ```
 
 Write the following into `/etc/netns-helper/ns/torrents.conf`:
