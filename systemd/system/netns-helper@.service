@@ -1,7 +1,6 @@
 [Unit]
 Description=Start a new network namespace.
 After=syslog.target network.target
-JoinsNamespaceOf=netns-helper@%i.service
 
 [Service]
 Type=oneshot

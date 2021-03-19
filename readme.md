@@ -62,6 +62,12 @@ And enter the following:
 After=netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
 Requires=netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
 JoinsNamespaceOf=netns-helper@torrents.service
+
+[Service]
+PrivateNetwork=true
+
+BindPaths=-/etc/netns/torrents/resolv.conf:/etc/resolv.conf
+BindPaths=-/etc/netns/torrents/nsswitch.conf:/etc/nsswitch.conf
 ```
 
 ```sh
