@@ -6,11 +6,8 @@ BindsTo=netns-helper@%i.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=netns-helperctl %i macvlan create
-ExecStop=netns-helperctl %i macvlan delete
-
-ProtectSystem=true
-ProtectHome=true
+ExecStart=env netns-helperctl %i macvlan create
+ExecStop=env netns-helperctl %i macvlan delete
 
 [Install]
 WantedBy=multi-user.target

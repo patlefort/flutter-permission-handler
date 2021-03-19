@@ -12,7 +12,7 @@ PIDFile=%t/netns-helper-%i/dhclient.pid
 
 Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/bin/netns-dhclient-script-wrapper
 
-ExecStart=ip netns exec %i dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf /etc/netns-helper-ns/%i-dhclient.conf
+ExecStart=env ip netns exec %i dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf /etc/netns-helper-ns/%i-dhclient.conf
 
 PrivateNetwork=true
 ProtectSystem=true
