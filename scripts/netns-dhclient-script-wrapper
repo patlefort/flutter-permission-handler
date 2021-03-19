@@ -1,3 +1,10 @@
 #!/bin/bash
 
-dhclient-script "$@" && [[ -f '/etc/resolv.conf.dhclient-new' ]] && cat '/etc/resolv.conf.dhclient-new' > '/etc/resolv.conf' && rm -f '/etc/resolv.conf.dhclient-new' && chmod o+r '/etc/resolv.conf'
+dhclient-script "$@"
+if [[ $? != 0 ]]; then
+	exit $?
+fi
+
+[[ -f '/etc/resolv.conf.dhclient-new' ]] && cat '/etc/resolv.conf.dhclient-new' > '/etc/resolv.conf'
+rm -f '/etc/resolv.conf.dhclient-new'
+chmod o+r '/etc/resolv.conf'

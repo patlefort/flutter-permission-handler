@@ -61,9 +61,7 @@ And enter the following:
 [Unit]
 After=netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
 Requires=netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
-
-[Service]
-NetworkNamespacePath=%t/netns/torrents
+JoinsNamespaceOf=netns-helper@torrents.service
 ```
 
 ```sh

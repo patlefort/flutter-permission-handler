@@ -10,7 +10,7 @@ RemainAfterExit=true
 ExecStart=netns-helperctl %i netns create
 ExecStop=netns-helperctl %i netns delete
 
-#PrivateNetwork=true
+PrivateNetwork=true
 
 [Install]
 WantedBy=multi-user.target

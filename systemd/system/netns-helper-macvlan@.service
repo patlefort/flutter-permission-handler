@@ -9,5 +9,8 @@ RemainAfterExit=true
 ExecStart=netns-helperctl %i macvlan create
 ExecStop=netns-helperctl %i macvlan delete
 
+ProtectSystem=true
+ProtectHome=true
+
 [Install]
 WantedBy=multi-user.target

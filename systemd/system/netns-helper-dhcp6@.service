@@ -2,18 +2,21 @@
 Description=Run dhclient in ipv6 mode in a network namespace.
 After=netns-helper@%i.service netns-helper-macvlan@%i.service
 BindsTo=netns-helper@%i.service
-#JoinsNamespaceOf=netns-helper@%i.service
+JoinsNamespaceOf=netns-helper@%i.service
 
 [Service]
 Type=simple
 RuntimeDirectory=netns-helper-%i
 ConfigurationDirectory=netns-helper
 PIDFile=%t/netns-helper-%i/dhclient6.pid
-#NetworkNamespacePath=%t/netns/%i
 
 Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/bin/netns-dhclient-script-wrapper
 
-ExecStart=ip netns exec %i dhclient -6 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient6.pid -lf %t/netns-helper-%i/dhclient6.lease -cf /etc/netns-helper-ns/%i-dhclient6.conf -df %t/netns-helper-%i/dhclient6-duid.lease
+ExecStart=dhclient -6 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient6.pid -lf %t/netns-helper-%i/dhclient6.lease -cf /etc/netns-helper-ns/%i-dhclient6.conf -df %t/netns-helper-%i/dhclient6-duid.lease
+
+PrivateNetwork=true
+ProtectSystem=true
+ProtectHome=true
 
 [Install]
 WantedBy=multi-user.target
