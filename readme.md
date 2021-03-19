@@ -28,6 +28,8 @@ If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you 
 dns=systemd-resolved
 ```
 
+Make sure your `/etc/nsswitch.conf` `hosts: ` line contains `resolve`.
+
 Leaving it a symlink will cause your host's resolv.conf to be overwritten by dhclient inside the network namespace.
 
 If the `netns-dhclient-script-wrapper` script is installed elsewhere than `/usr/bin`, you will have to edit `netns-helper-dhcp@.service` and `netns-helper-dhcp6@.service` (if you use dhcpv6):
