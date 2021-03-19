@@ -22,7 +22,7 @@ sudo cp /etc/nsswitch.conf /etc/netns/torrents/nsswitch.conf
 
 Then modify `/etc/netns/torrents/nsswitch.conf` to remove `resolve` and put `dns` of not already present.
 
-If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it and explicitly tell your network manager to use systemd-resolved. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
+If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it, recreate it as a regular file and explicitly tell your network manager to use systemd-resolved. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
 ```
 [main]
 dns=systemd-resolved
