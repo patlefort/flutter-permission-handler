@@ -3,9 +3,9 @@ netns-helper
 
 netns-helper provides some systemd services to help with the creation of network namespaces usable by other services.
 
-### Service files
+## Service files
 
-# `netns-helper@.service`
+### `netns-helper@.service`
 
 Create a network namespace. Services should either use `JoinsNamespaceOf=` or use ip command `ip netns exec <namespace>` to execute inside the network namespace. Services should also bind to the following files if present:
 
@@ -14,11 +14,11 @@ BindPaths=-/etc/netns/<namespace>/resolv.conf:/etc/resolv.conf
 BindPaths=-/etc/netns/<namespace>/nsswitch.conf:/etc/nsswitch.conf
 ```
 
-# `netns-helper-macvlan@.service`
+### `netns-helper-macvlan@.service`
 
 Create a macvlan interface inside the network namespace, bridged with an interface on host defined in `/etc/netns-helper/ns/<namespace>-macvlan.conf`.
 
-# `netns-helper-dhcp@.service`
+### `netns-helper-dhcp@.service`
 
 Run dhclient in IPv4 mode inside network namespace. If the `netns-dhclient-script-wrapper` script is installed elsewhere than `/usr/bin`, you will have to edit `netns-helper-dhcp@.service` and `netns-helper-dhcp6@.service` (if you use dhcpv6):
 
@@ -32,19 +32,19 @@ Enter the following:
 Environment=DHCLIENT_SCRIPT_WRAPPER=<enter path to netns-dhclient-script-wrapper>
 ```
 
-# `netns-helper-dhcp6@.service`
+### `netns-helper-dhcp6@.service`
 
 Run dhclient in IPv6 mode inside network namespace.
 
-# `netns-helper-postup@.service`
+### `netns-helper-postup@.service`
 
 Executed after all other netns-helper services have started for a network namespace. It will run the script in `/etc/netns-helper/ns/<namespace>-postup` if present and executable. The script run inside the network namespace.
 
-### Configuration
+## Configuration
 
 Namespaces with netns-helper are configured in `/etc/netns-helper/ns`.
 
-# `<namespace>-macvlan.conf`
+### `<namespace>-macvlan.conf`
 
 ```sh
 # MAC address for macvlan interface.
@@ -66,11 +66,11 @@ PARENT_IF=
 #DEFAULT_GATEWAY6=
 ```
 
-# `<namespace>-postup`
+### `<namespace>-postup`
 
 Script executed after all other netns-helper services have started for a network namespace. Must be executable.
 
-### DNS
+## DNS
 
 In order to make name resolution work properly inside the network namespace, some precautions must be taken:
 
@@ -89,9 +89,9 @@ sudo cp /etc/nsswitch.conf /etc/netns/<namespace>/nsswitch.conf
 
 Then modify `/etc/netns/<namespace>/nsswitch.conf` to remove `resolve` and put `dns` of not already present.
 
-### Example
+## Example
 
-## Run transmission-daemon inside a network namespace
+### Run transmission-daemon inside a network namespace
 
 Write the following into `/etc/netns-helper/ns/torrents-macvlan.conf`:
 
