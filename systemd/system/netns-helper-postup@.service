@@ -9,6 +9,3 @@ Type=oneshot
 RemainAfterExit=true
 
 ExecStart=env ip netns exec %i netns-helperctl %i postup
-
-[Install]
-WantedBy=multi-user.target
