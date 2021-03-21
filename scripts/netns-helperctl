@@ -39,6 +39,7 @@ case $CMD in
 
 		case $3 in
 			create)
+				# Read config
 				if [[ ! -f /etc/netns-helper/ns/$NS-macvlan.conf ]]; then
 					echo "File /etc/netns-helper/ns/$NS-macvlan.conf not found, exiting."
 					exit 1
@@ -53,10 +54,25 @@ case $CMD in
 				ip link add nm_$NS link $PARENT_IF address $MAC type macvlan mode bridge
 				if [[ $? != 0 ]]; then
 					echo "Failed to create macvlan interface."
-					exit 1
+					exit $?
 				fi
 
 				ip link set nm_$NS netns $NS
+				
+				# Privacy extensions
+				if [ ! -z "$PRIVACY_EXT" ]; then
+					sysctl -w net.ipv6.conf.nm_$NS.use_tempaddr=$PRIVACY_EXT
+				fi
+				
+				# Run preup script
+				if [[ -x /etc/netns-helper/ns/$NS-macvlan-preup ]]; then
+					ip netns exec $NS /etc/netns-helper/ns/$NS-preup nm_$NS
+					
+					if [[ $? != 0 ]]; then
+						exit $?
+					fi
+				fi
+				
 				ip netns exec $NS ip link set nm_$NS up
 				
 				# Configure macvlan interface
@@ -77,6 +93,15 @@ case $CMD in
 				fi
 
 				mkdir -p /run/netmachine/$NS
+				
+				# Run postup script
+				if [[ -x /etc/netns-helper/ns/$NS-macvlan-postup ]]; then
+					ip netns exec $NS /etc/netns-helper/ns/$NS-postup nm_$NS
+					
+					if [[ $? != 0 ]]; then
+						exit $?
+					fi
+				fi
 
 				;;
 			delete)

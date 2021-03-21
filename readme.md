@@ -16,7 +16,12 @@ BindPaths=-/etc/netns/<namespace>/nsswitch.conf:/etc/nsswitch.conf
 
 ### `netns-helper-macvlan@.service`
 
-Create a macvlan interface inside the network namespace, bridged with an interface on host defined in `/etc/netns-helper/ns/<namespace>-macvlan.conf`.
+Create a macvlan interface inside the network namespace, bridged with an interface on host defined in `/etc/netns-helper/ns/<namespace>-macvlan.conf`. It will execute the following scripts if present and executable, inside the network namespace:
+
+* `/etc/netns-helper/ns/<namespace>-macvlan-preup`: Before the macvlan is set as up.
+* `/etc/netns-helper/ns/<namespace>-macvlan-postup`: After the macvlan is set as up and configured.
+
+The first argument passed will be the name of the macvlan interface.
 
 ### `netns-helper-dhcp@.service`
 
@@ -38,7 +43,7 @@ Run dhclient in IPv6 mode inside network namespace.
 
 ### `netns-helper-postup@.service`
 
-Executed after all other netns-helper services have started for a network namespace. It will run the script in `/etc/netns-helper/ns/<namespace>-postup` if present and executable. The script run inside the network namespace.
+Executed after all other netns-helper services have started for a network namespace. It will run the script in `/etc/netns-helper/ns/<namespace>-postup` if present and executable. The script run inside the network namespace. You should setup routes and firewall rules there.
 
 ## Configuration
 
@@ -64,6 +69,9 @@ PARENT_IF=
 
 # [Optional] Default IPv6 gateway
 #DEFAULT_GATEWAY6=
+
+# [Optional] Privacy extensions for IPv6. 0, 1 or 2. See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
+#PRIVACY_EXT=
 ```
 
 ### `<namespace>-postup`
