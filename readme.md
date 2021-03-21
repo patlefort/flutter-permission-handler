@@ -70,7 +70,8 @@ PARENT_IF=
 # [Optional] Default IPv6 gateway
 #DEFAULT_GATEWAY6=
 
-# [Optional] Privacy extensions for IPv6. 0, 1 or 2. See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
+# [Optional] Privacy extensions for IPv6. 0, 1 or 2.
+# See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
 #PRIVACY_EXT=
 ```
 
@@ -82,7 +83,7 @@ Script executed after all other netns-helper services have started for a network
 
 In order to make name resolution work properly inside the network namespace, some precautions must be taken:
 
-* Running dhclient with `netns-helper-dhcp@.service` might overwrite your host's resolv.conf. To avoid this you should: Create a file `/etc/netns/<namespace>/resolv.conf`. If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it, recreate it as a regular file and explicitly tell your network manager to use systemd-resolved. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
+* Running dhclient with `netns-helper-dhcp@.service` might overwrite your host's resolv.conf. To avoid this you should create a file `/etc/netns/<namespace>/resolv.conf`. If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it, recreate it as a regular file and explicitly tell your network manager to use systemd-resolved. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
 
 ```
 [main]
@@ -130,7 +131,7 @@ BindPaths=-/etc/netns/torrents/resolv.conf:/etc/resolv.conf
 BindPaths=-/etc/netns/torrents/nsswitch.conf:/etc/nsswitch.conf
 ```
 
-**Read the DNS section to make sure name resolution is working properly**
+**Read the DNS section to make sure name resolution is working properly.**
 
 ```sh
 sudo systemctl daemon-reload
