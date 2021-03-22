@@ -37,9 +37,11 @@ Enter the following:
 Environment=DHCLIENT_SCRIPT_WRAPPER=<enter path to netns-dhclient-script-wrapper>
 ```
 
+dhclient will read the file `/etc/netns-helper/ns/<namespace>-dhclient.conf` for its configuration (-cf switch).
+
 ### `netns-helper-dhcp6@.service`
 
-Run dhclient in IPv6 mode inside network namespace.
+Run dhclient in IPv6 mode inside network namespace. dhclient will read the file `/etc/netns-helper/ns/<namespace>-dhclient6.conf` for its configuration (-cf switch).
 
 ### `netns-helper-postup@.service`
 

@@ -28,7 +28,7 @@ case $CMD in
 
 				;;
 			*)
-				echo "Wrong command."
+				>&2 echo "Wrong command."
 				exit 1
 				;;
 		esac
@@ -41,7 +41,7 @@ case $CMD in
 			create)
 				# Read config
 				if [[ ! -f /etc/netns-helper/ns/$NS-macvlan.conf ]]; then
-					echo "File /etc/netns-helper/ns/$NS-macvlan.conf not found, exiting."
+					>&2 echo "File /etc/netns-helper/ns/$NS-macvlan.conf not found, exiting."
 					exit 1
 				fi
 				
@@ -53,7 +53,7 @@ case $CMD in
 				# Setup macvlan interface and link it to parent interface.
 				ip link add nm_$NS link $PARENT_IF address $MAC type macvlan mode bridge
 				if [[ $? != 0 ]]; then
-					echo "Failed to create macvlan interface."
+					>&2 echo "Failed to create macvlan interface."
 					exit $?
 				fi
 
@@ -110,7 +110,7 @@ case $CMD in
 
 				;;
 			*)
-				echo "Wrong command."
+				>&2 echo "Wrong command."
 				exit 1
 				;;
 		esac
@@ -127,7 +127,7 @@ case $CMD in
 		;;
 		
 	*)
-		echo "Wrong command."
+		>&2 echo "Wrong command."
 		exit 1
 		;;
 esac
