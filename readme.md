@@ -102,6 +102,11 @@ sudo cp /etc/nsswitch.conf /etc/netns/<namespace>/nsswitch.conf
 
 Then modify `/etc/netns/<namespace>/nsswitch.conf` to remove `resolve` and put `dns` of not already present.
 
+## Commands
+
+* `sudo netns-helper add <namespace> <service>` to put a service into a network namespace. This command will create a file in `/etc/systemd/system/<service>.d/netns-helper.conf`.
+* `sudo netns-helper remove <service>` to remove service from a network namespace.
+
 ## Example
 
 ### Run transmission-daemon inside a network namespace
@@ -113,26 +118,11 @@ MAC=<enter a mac address>
 PARENT_IF=<enter name of the network interface of the host>
 ```
 
-Edit transmission-daemon service:
+Enable network namespace services and add transmission-daemon service to namespace:
 
 ```sh
-sudo systemctl edit transmission-daemon.service
-```
-
-And enter the following:
-
-```
-[Unit]
-After=netns-helper-postup@torrents.service
-Requires=netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
-BindsTo=netns-helper@torrents.service
-JoinsNamespaceOf=netns-helper@torrents.service
-
-[Service]
-PrivateNetwork=true
-
-BindPaths=-/etc/netns/torrents/resolv.conf:/etc/resolv.conf
-BindPaths=-/etc/netns/torrents/nsswitch.conf:/etc/nsswitch.conf
+sudo systemctl enable --now netns-helper@torrents.service netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
+sudo netns-helper add torrents transmission-daemon.service
 ```
 
 **Read the DNS section to make sure name resolution is working properly.**

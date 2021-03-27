@@ -1,0 +1,33 @@
+#!/bin/bash
+
+case $1 in
+	add)
+		NS=$2
+		
+		cat > "/etc/systemd/system/$3.d/netns-helper.conf" <<- EOF
+			[Unit]
+			After=netns-helper-postup@${NS}.service
+			Requires=netns-helper@${NS}.service
+			BindsTo=netns-helper@${NS}.service
+			JoinsNamespaceOf=netns-helper@${NS}.service
+
+			[Service]
+			PrivateNetwork=true
+
+			BindPaths=-/etc/netns/${NS}/resolv.conf:/etc/resolv.conf
+			BindPaths=-/etc/netns/${NS}/nsswitch.conf:/etc/nsswitch.conf
+		EOF
+		
+		echo "Service \`$3\` added to network namespace \`$NS\`."
+	;;
+	
+	remove)
+		rm -f "/etc/systemd/system/$2.d/netns-helper.conf"
+		
+		echo "Service \`$2\` removed from network namespace."
+	;;
+	
+	*)
+		>&2 echo "Wrong command."
+	;;
+esac
