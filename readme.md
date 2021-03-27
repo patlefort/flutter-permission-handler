@@ -132,5 +132,4 @@ sudo systemctl daemon-reload
 sudo systemctl restart transmission-daemon.service
 ```
 
-transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can add `netns-helper-dhcp6@torrents.service` to `Requires=` if you want to use DHCPv6.
-
+transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can enable `netns-helper-dhcp6@torrents.service` if you want to use DHCPv6.
