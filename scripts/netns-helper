@@ -4,6 +4,7 @@ case $1 in
 	add)
 		NS=$2
 		
+		umask 022
 		cat > "/etc/systemd/system/$3.d/netns-helper.conf" <<- EOF
 			[Unit]
 			After=netns-helper-postup@${NS}.service
