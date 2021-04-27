@@ -85,11 +85,12 @@ Script executed after all other netns-helper services have started for a network
 
 In order to make name resolution work properly inside the network namespace, some precautions must be taken:
 
-* `netns-helper-dhcp@.service` run dhclient which might overwrite your host's resolv.conf. To avoid this you should create a file `/etc/netns/<namespace>/resolv.conf`. If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it, recreate it as a regular file and explicitly tell your network manager of your host to use systemd-resolved. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
+* `netns-helper-dhcp@.service` run dhclient which might overwrite your host's resolv.conf. To avoid this you should create a file `/etc/netns/<namespace>/resolv.conf`. If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to remove it, recreate it as a regular file and explicitly tell your network manager of your host to use systemd-resolved and to stop managing `resolv.conf`. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
 
 ```
 [main]
-dns=systemd-resolved
+dns=none
+systemd-resolved=true
 ```
 
 Then make sure your `/etc/nsswitch.conf` contain `resolve` in he `hosts:` line.
