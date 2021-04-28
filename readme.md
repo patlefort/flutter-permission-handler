@@ -54,8 +54,8 @@ Namespaces with netns-helper are configured in `/etc/netns-helper/ns`.
 ### `<namespace>-macvlan.conf`
 
 ```sh
-# MAC address for macvlan interface.
-MAC=
+# MAC address for macvlan interface. Leave empty to let iproute2 generate one.
+#MAC=
 
 # Parent interface on host for macvlan interface.
 PARENT_IF=

@@ -51,12 +51,16 @@ case $CMD in
 				echo "MAC address: $MAC"
 
 				# Setup macvlan interface and link it to parent interface.
-				ip link add nm_$NS link $PARENT_IF address $MAC type macvlan mode bridge
+				ip link add nm_$NS link $PARENT_IF type macvlan mode bridge
 				if [[ $? != 0 ]]; then
 					>&2 echo "Failed to create macvlan interface."
 					exit $?
 				fi
-
+				
+				if [ ! -z "$MAC" ]; then
+					ip link set nm_$NS address $MAC
+				fi
+				
 				ip link set nm_$NS netns $NS
 				
 				# Privacy extensions
