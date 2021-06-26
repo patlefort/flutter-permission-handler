@@ -95,6 +95,9 @@ case $CMD in
 				if [ ! -z "$DEFAULT_GATEWAY6" ]; then
 					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$NS onlink
 				fi
+				
+				echo "Macvlan interface:"
+				ip netns exec $NS ip link show nm_$NS
 
 				mkdir -p /run/netmachine/$NS
 				
