@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -euo pipefail
+shopt -s inherit_errexit
+
 NS=$1
 CMD=$2
 
@@ -48,51 +51,60 @@ case $CMD in
 				source /etc/netns-helper/ns/$NS-macvlan.conf
 				
 				echo "Creating macvlan interface in $NS with $PARENT_IF."
-				echo "MAC address: $MAC"
 
 				# Setup macvlan interface and link it to parent interface.
-				ip link add nm_$NS link $PARENT_IF type macvlan mode bridge
-				if [[ $? != 0 ]]; then
-					>&2 echo "Failed to create macvlan interface."
-					exit $?
-				fi
+				ip link add nm_$NS link $PARENT_IF type macvlan mode bridge || \
+					{
+						>&2 echo "Failed to create macvlan interface."
+						exit 1
+					}
 				
-				if [ ! -z "$MAC" ]; then
-					ip link set nm_$NS address $MAC
-				fi
+				ip link set nm_$NS netns $NS || \
+					{
+						>&2 echo "Failed to add macvlan to network namespace."
+						ip link delete nm_$NS
+						exit 1
+					}
 				
-				ip link set nm_$NS netns $NS
+				macvlan_failed()
+				{
+					# Delete interface on failure
+					ip netns exec $NS ip link delete nm_$NS
+				}
+					
+				trap 'macvlan_failed' ERR
+				
+				if [[ -v MAC && ! -z "$MAC" ]]; then
+					echo "MAC address: $MAC"
+					ip netns exec $NS ip link set nm_$NS address $MAC
+				fi
 				
 				# Privacy extensions
-				if [ ! -z "$PRIVACY_EXT" ]; then
+				if [[ -v PRIVACY_EXT && ! -z "$PRIVACY_EXT" ]]; then
 					sysctl -w net.ipv6.conf.nm_$NS.use_tempaddr=$PRIVACY_EXT
 				fi
 				
 				# Run preup script
 				if [[ -x /etc/netns-helper/ns/$NS-macvlan-preup ]]; then
 					ip netns exec $NS /etc/netns-helper/ns/$NS-preup nm_$NS
-					
-					if [[ $? != 0 ]]; then
-						exit $?
-					fi
 				fi
 				
 				ip netns exec $NS ip link set nm_$NS up
 				
 				# Configure macvlan interface
-				if [ ! -z "$IPADDR4" ]; then
+				if [[ -v IPADDR4 && ! -z "$IPADDR4" ]]; then
 					ip netns exec $NS ip address add $IPADDR4 dev nm_$NS
 				fi
 				
-				if [ ! -z "$DEFAULT_GATEWAY4" ]; then
+				if [[ -v DEFAULT_GATEWAY4 && ! -z "$DEFAULT_GATEWAY4" ]]; then
 					ip route add default via $DEFAULT_GATEWAY4 dev nm_$NS onlink
 				fi
 				
-				if [ ! -z "$IPADDR6" ]; then
+				if [[ -v IPADDR6 && ! -z "$IPADDR6" ]]; then
 					ip netns exec $NS ip -6 address add $IPADDR6 dev nm_$NS
 				fi
 				
-				if [ ! -z "$DEFAULT_GATEWAY6" ]; then
+				if [[ -v DEFAULT_GATEWAY6 && ! -z "$DEFAULT_GATEWAY6" ]]; then
 					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$NS onlink
 				fi
 				
@@ -104,10 +116,6 @@ case $CMD in
 				# Run postup script
 				if [[ -x /etc/netns-helper/ns/$NS-macvlan-postup ]]; then
 					ip netns exec $NS /etc/netns-helper/ns/$NS-postup nm_$NS
-					
-					if [[ $? != 0 ]]; then
-						exit $?
-					fi
 				fi
 
 				;;
@@ -128,7 +136,6 @@ case $CMD in
 		
 		if [[ -x /etc/netns-helper/ns/$NS-postup ]]; then
 			/etc/netns-helper/ns/$NS-postup
-			exit $?
 		fi
 		
 		;;
