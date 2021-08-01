@@ -8,8 +8,10 @@ Before=netns-helper-postup@%i.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=env netns-helperctl %i macvlan create
-ExecStop=env netns-helperctl %i macvlan delete
+Environment=PREFIX=/
+
+ExecStart=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan create
+ExecStop=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan delete
 
 [Install]
 WantedBy=multi-user.target

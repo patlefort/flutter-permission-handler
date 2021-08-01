@@ -93,7 +93,7 @@ dns=none
 systemd-resolved=true
 ```
 
-Then make sure your `/etc/nsswitch.conf` contain `resolve` in he `hosts:` line.
+Then make sure your `/etc/nsswitch.conf` contain `resolve` in he `hosts:` line. Remove `dns` if present. Also make sure that you have installed `nss-resolve` on your system.
 
 * Make sure your network namespace is not using your host's systemd-resolved. If your `/etc/nsswitch.conf` contains `resolve` or `resolve [!UNAVAIL=return]`, it will be used via dbus.
 

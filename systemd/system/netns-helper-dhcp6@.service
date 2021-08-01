@@ -11,7 +11,7 @@ RuntimeDirectory=netns-helper-%i
 ConfigurationDirectory=netns-helper
 PIDFile=%t/netns-helper-%i/dhclient6.pid
 
-Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/bin/netns-dhclient-script-wrapper
+Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/lib/netns-helper/netns-dhclient-script-wrapper
 
 BindPaths=-/etc/netns/%i/resolv.conf:/etc/resolv.conf
 BindPaths=-/etc/netns/%i/nsswitch.conf:/etc/nsswitch.conf

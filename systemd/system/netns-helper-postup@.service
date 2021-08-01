@@ -7,5 +7,6 @@ JoinsNamespaceOf=netns-helper@%i.service
 [Service]
 Type=oneshot
 RemainAfterExit=true
+Environment=PREFIX=/
 
-ExecStart=env ip netns exec %i netns-helperctl %i postup
+ExecStart=env ip netns exec %i ${PREFIX}/lib/netns-helper/netns-helperctl %i postup
