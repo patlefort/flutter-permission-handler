@@ -5,6 +5,8 @@ shopt -s inherit_errexit
 
 dhclient-script "$@"
 
-cat /etc/resolv.conf.dhclient-new* > '/etc/resolv.conf' && \
-	rm -f /etc/resolv.conf.dhclient-new*
-chmod o+r '/etc/resolv.conf'
+if grep -q '.dhclient-new' "$(which dhclient-script)"; then
+	cat /etc/resolv.conf.dhclient-new* > '/etc/resolv.conf' && \
+		rm -f /etc/resolv.conf.dhclient-new*
+	chmod o+r '/etc/resolv.conf'
+fi
