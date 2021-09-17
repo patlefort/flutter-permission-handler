@@ -22,7 +22,7 @@ transmission-daemon will then run inside the network namespace "torrents" with a
 
 ### Switches:
 
-* `--now`: Start or restart services now.
+* `--now`: Start, restart or stop services now.
 * `--overwrite`: Overwrite config with new config if applicable to feature.
 * `--parent_if <interface>`: Parent interface for macvlan.
 * `--mac <mac address>`: MAC address of macvlan interface.
@@ -47,7 +47,7 @@ Remove service from a network namespace.
 
 Show status of namespace services.
 
-### `netns-helper start|restart|stop <namespace>`
+### `sudo netns-helper start|restart|stop <namespace>`
 
 Start/restart/stop network namespace target. Restarting or stopping will also affect services that are part of the namespace.
 
@@ -60,11 +60,11 @@ Namespaces with netns-helper are configured in `/etc/netns-helper/ns`.
 Configuration for a macvlan interface.
 
 ```sh
-# MAC address for macvlan interface. Leave empty to let iproute2 generate one.
-#MAC=
-
 # Parent interface on host for macvlan interface.
 PARENT_IF=
+
+# [Optional] MAC address for macvlan interface. Leave empty to let iproute2 generate one.
+#MAC=
 
 # [Optional] Static IPv4 address
 #IPADDR4=
