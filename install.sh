@@ -1,10 +1,10 @@
 #!/bin/bash
 
-PREFIX="$1"
+PREFIX="${1:-/usr/local}"
 
-#install -dm755 "${PREFIX}/etc/netns-helper/ns"
+install -dm755 "${PREFIX}/etc/netns-helper/ns"
 install -dm755 "${PREFIX}/lib/systemd/system"
-install -Dm644 "systemd/system"/* -t "${PREFIX}/lib/systemd/system"
+install -Dm644 'systemd/system'/* -t "${PREFIX}/lib/systemd/system"
 install -dm755 "${PREFIX}/lib/netns-helper"
 install -Dm755 'scripts/netns-helperctl' -t "${PREFIX}/lib/netns-helper/"
 install -Dm755 'scripts/netns-dhclient-script-wrapper' -t "${PREFIX}/lib/netns-helper/"

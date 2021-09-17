@@ -1,9 +1,9 @@
 [Unit]
 Description=Create a macvlan interface in a network namespace.
 After=netns-helper@%i.service
-Before=netns-helper-dhcp@%i.service netns-helper-dhcp6@%i.service
+Before=netns-helper-postup@%i.service netns-helper-dhcp@%i.service netns-helper-dhcp6@%i.service
 BindsTo=netns-helper@%i.service
-Before=netns-helper-postup@%i.service
+PartOf=netns-helper@%i.target
 
 [Service]
 Type=oneshot
@@ -14,4 +14,4 @@ ExecStart=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan create
 ExecStop=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan delete
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=netns-helper@%i.target

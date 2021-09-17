@@ -3,6 +3,7 @@ Description=Run script after network namespace is setup.
 After=netns-helper@%i.service
 BindsTo=netns-helper@%i.service
 JoinsNamespaceOf=netns-helper@%i.service
+PartOf=netns-helper@%i.target
 
 [Service]
 Type=oneshot

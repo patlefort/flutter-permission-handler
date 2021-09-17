@@ -3,7 +3,95 @@ netns-helper
 
 netns-helper provides some systemd services to help with the creation of network namespaces usable by other services.
 
+## Example
+
+### Run transmission-daemon inside a network namespace
+
+Enable network namespace services and add transmission-daemon service to namespace:
+
+```sh
+sudo netns-helper enable torrents macvlan dhcp --parent_if <interface> --now
+sudo netns-helper add-service transmission-daemon torrents --now
+```
+
+**Read the DNS section to make sure name resolution is working properly.**
+
+transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can enable `netns-helper-dhcp6@torrents.service` if you want to use DHCPv6.
+
+## `netns-helper` command
+
+### Switches:
+
+* `--now`: Start or restart services now.
+* `--overwrite`: Overwrite config with new config if applicable to feature.
+* `--parent_if <interface>`: Parent interface for macvlan.
+* `--mac <mac address>`: MAC address of macvlan interface.
+
+### `sudo netns-helper enable <namespace> [<list of features>]`
+
+Enable a namespace. Listed features' service units are enabled as well as the target unit. Features are a whitespace separated list of features from those available (dhcp, dhcp6, macvlan).
+
+### `sudo netns-helper disable <namespace> [<list of features>]`
+
+Disable a namespace. If a list of features is given, only the given features are disabled. Service units that are part of the network namespace will not start while the namespace target unit is disabled.
+
+### `sudo netns-helper add-service <service> <namespace>`
+
+Put a service into a network namespace. This command will create a file in `/etc/systemd/system/<service>.d/netns-helper.conf`. The service will only start if the network namespace target unit is activated.
+
+### `sudo netns-helper remove-service <service>`
+
+Remove service from a network namespace.
+
+### `netns-helper status <namespace>`
+
+Show status of namespace services.
+
+### `netns-helper start|restart|stop <namespace>`
+
+Start/restart/stop network namespace target. Restarting or stopping will also affect services that are part of the namespace.
+
+## Configuration
+
+Namespaces with netns-helper are configured in `/etc/netns-helper/ns`.
+
+### `<namespace>-macvlan.conf`
+
+Configuration for a macvlan interface.
+
+```sh
+# MAC address for macvlan interface. Leave empty to let iproute2 generate one.
+#MAC=
+
+# Parent interface on host for macvlan interface.
+PARENT_IF=
+
+# [Optional] Static IPv4 address
+#IPADDR4=
+
+# [Optional] Default IPv4 gateway
+#DEFAULT_GATEWAY4=
+
+# [Optional] Static IPv6 address
+#IPADDR6=
+
+# [Optional] Default IPv6 gateway
+#DEFAULT_GATEWAY6=
+
+# [Optional] Privacy extensions for IPv6. 0, 1 or 2.
+# See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
+#PRIVACY_EXT=
+```
+
+### `<namespace>-postup`
+
+Script executed after all other netns-helper services have started for a network namespace. Must be executable.
+
 ## Service files
+
+### `netns-helper@.target`
+
+Services for a network namespace are grouped into a target under the namespace's name.
 
 ### `netns-helper@.service`
 
@@ -47,40 +135,6 @@ Run dhclient in IPv6 mode inside network namespace. dhclient will read the file 
 
 Executed after all other netns-helper services have started for a network namespace. It will run the script in `/etc/netns-helper/ns/<namespace>-postup` if present and executable. The script run inside the network namespace. You should setup routes and firewall rules there.
 
-## Configuration
-
-Namespaces with netns-helper are configured in `/etc/netns-helper/ns`.
-
-### `<namespace>-macvlan.conf`
-
-```sh
-# MAC address for macvlan interface. Leave empty to let iproute2 generate one.
-#MAC=
-
-# Parent interface on host for macvlan interface.
-PARENT_IF=
-
-# [Optional] Static IPv4 address
-#IPADDR4=
-
-# [Optional] Default IPv4 gateway
-#DEFAULT_GATEWAY4=
-
-# [Optional] Static IPv6 address
-#IPADDR6=
-
-# [Optional] Default IPv6 gateway
-#DEFAULT_GATEWAY6=
-
-# [Optional] Privacy extensions for IPv6. 0, 1 or 2.
-# See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
-#PRIVACY_EXT=
-```
-
-### `<namespace>-postup`
-
-Script executed after all other netns-helper services have started for a network namespace. Must be executable.
-
 ## DNS
 
 In order to make name resolution work properly inside the network namespace, some precautions must be taken:
@@ -102,35 +156,3 @@ sudo cp /etc/nsswitch.conf /etc/netns/<namespace>/nsswitch.conf
 ```
 
 Then modify `/etc/netns/<namespace>/nsswitch.conf` to remove `resolve` and put `dns` of not already present.
-
-## Commands
-
-* `sudo netns-helper add <namespace> <service>` to put a service into a network namespace. This command will create a file in `/etc/systemd/system/<service>.d/netns-helper.conf`.
-* `sudo netns-helper remove <service>` to remove service from a network namespace.
-
-## Example
-
-### Run transmission-daemon inside a network namespace
-
-Write the following into `/etc/netns-helper/ns/torrents-macvlan.conf`:
-
-```sh
-MAC=<enter a mac address>
-PARENT_IF=<enter name of the network interface of the host>
-```
-
-Enable network namespace services and add transmission-daemon service to namespace:
-
-```sh
-sudo systemctl enable --now netns-helper@torrents.service netns-helper-macvlan@torrents.service netns-helper-dhcp@torrents.service
-sudo netns-helper add torrents transmission-daemon.service
-```
-
-**Read the DNS section to make sure name resolution is working properly.**
-
-```sh
-sudo systemctl daemon-reload
-sudo systemctl restart transmission-daemon.service
-```
-
-transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can enable `netns-helper-dhcp6@torrents.service` if you want to use DHCPv6.
