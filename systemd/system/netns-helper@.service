@@ -3,6 +3,7 @@ Description=Start a new network namespace.
 BindsTo=netns-helper-postup@%i.service
 Before=netns-helper-postup@%i.service
 PartOf=netns-helper@%i.target
+ConditionPathExists=!/var/run/netns/%i
 
 [Service]
 Type=oneshot

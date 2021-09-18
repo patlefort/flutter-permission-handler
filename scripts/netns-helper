@@ -51,6 +51,13 @@ if [[ "$OPT_NOW" == yes ]]; then FLAGS+=(--now); fi
 read_service()
 {
 	SERVICE="$1"
+	
+	[[ ! -z "$SERVICE" ]] || \
+		{
+			>&2 echo "No service given."
+			exit 1
+		}
+	
 	if [[ $SERVICE != *.service ]]; then
 		SERVICE="${SERVICE}.service"
 	fi
@@ -110,10 +117,16 @@ add_features()
 	done
 }
 
-case ${PARGS[0]} in
+case ${PARGS[0]:-} in
 	add-service)
-		read_service "${PARGS[1]}"
-		NS=${PARGS[2]}
+		read_service "${PARGS[1]:-}"
+		NS=${PARGS[2]:-}
+		
+		[[ ! -z "$NS" ]] || \
+			{
+				>&2 echo "No namespace given."
+				exit 1
+			}
 		
 		umask 022
 		
@@ -124,6 +137,7 @@ case ${PARGS[0]} in
 			Requisite=netns-helper@${NS}.target
 			PartOf=netns-helper@${NS}.target
 			JoinsNamespaceOf=netns-helper@${NS}.service
+			ConditionPathExists=/var/run/netns/${NS}
 
 			[Service]
 			PrivateNetwork=true
@@ -156,7 +170,7 @@ case ${PARGS[0]} in
 	;;
 	
 	enable)
-		NS=${PARGS[1]}
+		NS=${PARGS[1]:-}
 		
 		[[ ! -z "$NS" ]] || \
 			{
@@ -172,7 +186,7 @@ case ${PARGS[0]} in
 	;;
 	
 	disable)
-		NS=${PARGS[1]}
+		NS=${PARGS[1]:-}
 		
 		[[ ! -z "$NS" ]] || \
 			{
@@ -194,28 +208,35 @@ case ${PARGS[0]} in
 	;;
 	
 	status)
-		NS=${PARGS[1]}
+		NS=${PARGS[1]:-}
 		
-		#systemctl list-units --full --all --type service "netns-helper*@${NS}.service"
-		systemctl list-dependencies "netns-helper@${NS}.target"
+		if [[ -z "$NS" ]]; then
+			systemctl list-dependencies "netns-helper@*.target"
+		else
+			systemctl list-dependencies "netns-helper@${NS}.target"
+		fi
 	;;
 	
 	start)
-		NS=${PARGS[1]}
+		NS=${PARGS[1]:-}
 		
 		systemctl start netns-helper@$NS.target
 	;;
 	
 	stop)
-		NS=${PARGS[1]}
+		NS=${PARGS[1]:-}
 		
 		systemctl stop netns-helper@$NS.target
 	;;
 	
 	restart)
-		NS=${PARGS[1]}
+		NS=${PARGS[1]:-}
 		
 		systemctl restart netns-helper@$NS.target
+	;;
+	
+	list)
+		systemctl list-units --all --type target "netns-helper*"
 	;;
 	
 	*)
