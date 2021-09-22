@@ -14,4 +14,4 @@ ExecStart=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan create
 ExecStop=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan delete
 
 [Install]
-WantedBy=netns-helper@%i.target
+RequiredBy=netns-helper@%i.target

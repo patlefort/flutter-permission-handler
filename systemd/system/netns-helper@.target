@@ -1,7 +1,6 @@
 [Unit]
 Description=Network namespace %i target
-Requires=network-online.target
-After=network-online.target
+Requires=netns-helper-postup@%i.service
 AllowIsolate=no
 
 [Install]

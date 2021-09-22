@@ -5,6 +5,9 @@ Before=netns-helper-postup@%i.service
 PartOf=netns-helper@%i.target
 ConditionPathExists=!/var/run/netns/%i
 
+Requires=network-online.target
+After=network-online.target
+
 [Service]
 Type=oneshot
 RemainAfterExit=true
@@ -16,4 +19,4 @@ ExecStop=env ${PREFIX}/lib/netns-helper/netns-helperctl %i netns delete
 PrivateNetwork=true
 
 [Install]
-WantedBy=netns-helper@%i.target
+RequiredBy=netns-helper@%i.target

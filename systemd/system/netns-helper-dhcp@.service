@@ -24,4 +24,4 @@ ProtectSystem=true
 ProtectHome=true
 
 [Install]
-WantedBy=netns-helper@%i.target
+RequiredBy=netns-helper@%i.target
