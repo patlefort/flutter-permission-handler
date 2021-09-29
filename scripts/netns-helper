@@ -9,6 +9,7 @@ OPT_OVERWRITE=no
 OPT_PARENT_IF=
 OPT_NOW=no
 OPT_MAC=
+OPT_HELP=
 
 PARGS=()
 while [[ $# -gt 0 ]]; do
@@ -34,6 +35,11 @@ while [[ $# -gt 0 ]]; do
 				shift 1
 			;;
 			
+			--help)
+				OPT_HELP=yes
+				shift 1
+			;;
+			
 			*)
 				>&2 echo "Invalid option."
 				exit 1
@@ -44,6 +50,32 @@ while [[ $# -gt 0 ]]; do
 		shift 1
 	fi
 done
+
+if [[ "$OPT_HELP" == "yes" ]]; then
+	
+	echo 'Switches:'
+	echo '  --now                        Start, restart or stop services now.'
+	echo '  --overwrite                  Overwrite config with new config if applicable to feature.'
+	echo '  --parent_if <interface>      Parent interface for macvlan.'
+	echo '  --mac <mac address>          MAC address of macvlan interface.'
+	
+	echo
+	echo 'Commands:'
+	echo '  enable <namespace> [<list of features>]'
+	echo '  disable <namespace> [<list of features>]'
+	echo '  add-service <service> <namespace>'
+	echo '  remove-service <service>'
+	echo '  status [<namespace>]'
+	echo '  start|restart|stop <namespace>'
+	
+	echo
+	echo 'Features:'
+	echo '  dhcp                        Start a dhcp client inside namespace.'
+	echo '  dhcp6                       Start a dhcpv6 client inside namespace.'
+	echo '  macvlan                     Create a macvlan interface inside namespace.'
+	
+	exit
+fi
 
 FLAGS=()
 if [[ "$OPT_NOW" == yes ]]; then FLAGS+=(--now); fi

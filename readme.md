@@ -43,9 +43,9 @@ Put a service into a network namespace. This command will create a file in `/etc
 
 Remove service from a network namespace.
 
-### `netns-helper status <namespace>`
+### `netns-helper status [<namespace>]`
 
-Show status of namespace services.
+Show status of namespace services. Leave <namespace> empty to show status for all namespaces.
 
 ### `sudo netns-helper start|restart|stop <namespace>`
 
