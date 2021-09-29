@@ -16,7 +16,7 @@ sudo netns-helper add-service transmission-daemon torrents --now
 
 **Read the DNS section to make sure name resolution is working properly.**
 
-transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can enable `netns-helper-dhcp6@torrents.service` if you want to use DHCPv6.
+transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can enable DHCPv6 with `sudo netns-helper enable torrents dhcp6 --now`.
 
 ## `netns-helper` command
 
