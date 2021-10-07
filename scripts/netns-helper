@@ -53,28 +53,35 @@ done
 
 if [[ "$OPT_HELP" == "yes" ]]; then
 	
-	echo 'Switches:'
-	echo '  --now                        Start, restart or stop services now.'
-	echo '  --overwrite                  Overwrite config with new config if applicable to feature.'
-	echo '  --parent_if <interface>      Parent interface for macvlan.'
-	echo '  --mac <mac address>          MAC address of macvlan interface.'
-	
-	echo
-	echo 'Commands:'
-	echo '  enable <namespace> [<list of features>]'
-	echo '  disable <namespace> [<list of features>]'
-	echo '  add-service <service> <namespace>'
-	echo '  remove-service <service>'
-	echo '  status [<namespace>]'
-	echo '  start|restart|stop <namespace>'
-	
-	echo
-	echo 'Features:'
-	echo '  dhcp                        Start a dhcp client inside namespace.'
-	echo '  dhcp6                       Start a dhcpv6 client inside namespace.'
-	echo '  macvlan                     Create a macvlan interface inside namespace.'
+	cat <<-EOF
+		Switches:
+		  --now                        Start, restart or stop services now.
+		  --overwrite                  Overwrite config with new config if applicable to feature.
+		  --parent_if <interface>      Parent interface for macvlan.
+		  --mac <mac address>          MAC address of macvlan interface.
+			
+		Commands:
+		  --now                        Start, restart or stop services now.
+		  --overwrite                  Overwrite config with new config if applicable to feature.
+		  --parent_if <interface>      Parent interface for macvlan.
+		  --mac <mac address>          MAC address of macvlan interface.
+		
+		Commands:
+		  enable <namespace> [<list of features>]
+		  disable <namespace> [<list of features>]
+		  add-service <service> <namespace>
+		  remove-service <service>
+		  status [<namespace>]
+		  start|restart|stop <namespace>
+			
+		Features:
+		  dhcp                         Start a dhcp client inside namespace.
+		  dhcp6                        Start a dhcpv6 client inside namespace.
+		  macvlan                      Create a macvlan interface inside namespace.
+	EOF
 	
 	exit
+	
 fi
 
 FLAGS=()
@@ -243,7 +250,10 @@ case ${PARGS[0]:-} in
 		NS=${PARGS[1]:-}
 		
 		if [[ -z "$NS" ]]; then
-			systemctl list-dependencies "netns-helper@*.target"
+			namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --full | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/netns-helper@\2.target/')
+			for n in ${namespaces//\\n/}; do
+				systemctl list-dependencies "$n"
+			done
 		else
 			systemctl list-dependencies "netns-helper@${NS}.target"
 		fi
