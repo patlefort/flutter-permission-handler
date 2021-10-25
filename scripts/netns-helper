@@ -59,12 +59,6 @@ if [[ "$OPT_HELP" == "yes" ]]; then
 		  --overwrite                  Overwrite config with new config if applicable to feature.
 		  --parent_if <interface>      Parent interface for macvlan.
 		  --mac <mac address>          MAC address of macvlan interface.
-			
-		Commands:
-		  --now                        Start, restart or stop services now.
-		  --overwrite                  Overwrite config with new config if applicable to feature.
-		  --parent_if <interface>      Parent interface for macvlan.
-		  --mac <mac address>          MAC address of macvlan interface.
 		
 		Commands:
 		  enable <namespace> [<list of features>]
