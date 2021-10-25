@@ -1,0 +1,370 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en">
+	<title>netns-helper manual</title>
+	
+	<refentry xml:id="netns-helper">
+		<info>
+			<author>
+				<personname><firstname>Patrick</firstname><surname>Northon</surname></personname>
+				<contrib>Developer of netns-helper.</contrib>
+			</author>
+			<productname>netns-helper</productname>
+			<!--<productnumber>1.0</productnumber>-->
+		</info>
+		
+		<refmeta>
+			<refentrytitle>netns-helper</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		
+		<refmiscinfo source="netns-helper" />
+		
+		<refnamediv>
+			<refname>netns-helper</refname>
+			<refpurpose>command to control namespaces</refpurpose>
+		</refnamediv>
+		
+		<refsynopsisdiv>
+			<cmdsynopsis>
+				<command>netns-helper</command>
+				<arg choice="opt">--now</arg>
+				<arg choice="opt">--overwrite</arg>
+				<arg choice="opt">--parent_if <replaceable>interface</replaceable></arg>
+				<arg choice="opt">--mac <replaceable>mac address</replaceable></arg>
+				
+				<group choice="req">
+					<arg>enable <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></arg>
+					<arg>disable <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></arg>
+					<arg>add-service <replaceable>service</replaceable> <replaceable>namespace</replaceable></arg>
+					<arg>remove-service <replaceable>service</replaceable></arg>
+					<arg>status <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>start <replaceable>namespace</replaceable></arg>
+					<arg>restart <replaceable>namespace</replaceable></arg>
+					<arg>stop <replaceable>namespace</replaceable></arg>
+				</group>
+			</cmdsynopsis>
+		</refsynopsisdiv>
+		
+		<refsection>
+			<title>Description</title>
+			<para>The <command>netns-helper</command> command control services related to network namespaces managed by netns-helper.</para>
+		</refsection>
+			
+		<refsection>
+			<title>Switches</title>
+			
+			<variablelist>
+				<varlistentry>
+					<term><option>--now</option></term>
+					<listitem><para>Start, restart or stop services now.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--overwrite</option></term>
+					<listitem><para>Overwrite config with new config if applicable to feature.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--parent_if</option> <replaceable>interface</replaceable></term>
+					<listitem><para>Parent interface for macvlan.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--mac</option> <replaceable>mac address</replaceable></term>
+					<listitem><para>MAC address of macvlan interface.</para></listitem>
+				</varlistentry>
+			</variablelist>
+		</refsection>
+		
+		<refsection>
+			<title>Commands</title>
+			
+			<variablelist>
+				<varlistentry>
+					<term><command>enable</command> <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></term>
+					<listitem><para>
+						Enable a namespace. Features are a whitespace separated list of features from those available (<constant>dhcp</constant>, 
+						<constant>dhcp6</constant>, <constant>macvlan</constant>) to enable for the namespace.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>disable</command> <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></term>
+					<listitem><para>
+						Disable a namespace. If a list of features is given, only the given features are disabled. Service units that are part of the 
+						network namespace (added with command <command>add-service</command>) will not start while the namespace target unit is disabled.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>add-service</command> <replaceable>service</replaceable> <replaceable>namespace</replaceable></term>
+					<listitem><para>
+						Put a service into a network namespace. This command will create a file in `/etc/systemd/system/&lt;service&gt;.d/netns-helper.conf`. 
+						The service will only start if the network namespace target unit is activated.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>remove-service</command> <replaceable>service</replaceable></term>
+					<listitem><para>
+						Remove service from a network namespace.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>status</command> <optional><replaceable>namespace</replaceable></optional></term>
+					<listitem><para>
+						Show status of namespace services. Leave <optional><replaceable>namespace</replaceable></optional> empty to show status for all namespaces.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>start</command> | <command>restart</command> | <command>stop</command> <replaceable>namespace</replaceable></term>
+					<listitem><para>
+						Start/restart/stop network namespace target. Restarting or stopping will also affect services that are part of the namespace.
+					</para></listitem>
+				</varlistentry>
+			</variablelist>
+		</refsection>
+		
+		<refsection>
+			<title>Example</title>
+			
+			<example>
+				<title>Run transmission-daemon inside a network namespace named `torrents`</title>
+				<programlisting>
+sudo netns-helper enable torrents macvlan dhcp --parent_if <replaceable>interface</replaceable> --now
+sudo netns-helper add-service transmission-daemon torrents --now
+				</programlisting>
+				
+				<para>
+					transmission-daemon will then run inside the network namespace `torrents` with a macvlan interface configured via dhcp. It will 
+					basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan 
+					limitations. You can enable DHCPv6 with <command>sudo netns-helper enable torrents dhcp6 --now</command>.
+				</para>
+				
+				<important><para>
+					Read the DNS section in <citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry> 
+					to make sure name resolution is working properly.
+				</para></important>
+			</example>
+		</refsection>
+		
+	</refentry>
+	
+	<refentry xml:id="netns-helper-config">
+		<info>
+			<author>
+				<personname><firstname>Patrick</firstname><surname>Northon</surname></personname>
+				<contrib>Developer of netns-helper.</contrib>
+			</author>
+			<productname>netns-helper</productname>
+			<!--<productnumber>1.0</productnumber>-->
+		</info>
+		
+		<refmeta>
+			<refentrytitle>netns-helper-config</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		
+		<refmiscinfo source="netns-helper-config" />
+		
+		<refnamediv>
+			<refname>netns-helper-config</refname>
+			<refpurpose>netns-helper configuration</refpurpose>
+		</refnamediv>
+		
+		<refsection>
+			<title>Configuration</title>
+			
+			<para>
+				Namespaces with netns-helper are configured in `/etc/netns-helper/ns`.
+			</para>
+			
+			<variablelist>
+				<varlistentry>
+					<term><replaceable>namespace</replaceable>-macvlan.conf</term>
+					<listitem>
+						<para>Configuration for a macvlan interface.</para>
+						<programlisting>
+# Parent interface on host for macvlan interface.
+PARENT_IF=
+
+# [Optional] MAC address for macvlan interface. Leave empty to let iproute2 generate one.
+#MAC=
+
+# [Optional] Static IPv4 address
+#IPADDR4=
+
+# [Optional] Default IPv4 gateway
+#DEFAULT_GATEWAY4=
+
+# [Optional] Static IPv6 address
+#IPADDR6=
+
+# [Optional] Default IPv6 gateway
+#DEFAULT_GATEWAY6=
+
+# [Optional] Privacy extensions for IPv6. 0, 1 or 2.
+# See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
+#PRIVACY_EXT=
+							</programlisting>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-macvlan-preup</command></term>
+					<para>Executed if present and executable before a macvlan is set as up. The first argument passed will be the name of the macvlan interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-macvlan-postup</command></term>
+					<para>Executed if present and executable after a macvlan is set as up and configured. The first argument passed will be the name of the macvlan interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><replaceable>namespace</replaceable>-dhclient.conf</term>
+					<para>dhclient configuration file passed with the <option>-cf</option> switch for DHCPv4.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><replaceable>namespace</replaceable>-dhclient6.conf</term>
+					<para>dhclient configuration file passed with the <option>-cf</option> switch for DHCPv6.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-postup</command></term>
+					<listitem>
+						<para>Script executed after all other netns-helper services have started for a network namespace. Must be executable.</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</refsection>
+		
+		<refsection>
+			<title>DNS</title>
+			
+			<para>In order to make name resolution work properly inside the network namespace, some precautions must be taken:</para>
+			
+			<para>
+				<constant>netns-helper-dhcp@.service</constant> run dhclient which might overwrite your host's resolv.conf. To avoid this you should create a file 
+				`/etc/netns/<replaceable>namespace</replaceable>/resolv.conf`. If you are using systemd-resolved and your `/etc/resolv.conf` is a symlink, you will have to 
+					remove it, recreate it as a regular file and explicitly tell your network manager of your host to use systemd-resolved and to stop 
+					managing `resolv.conf`. If you are using NetworkManager, you can add the following file into `/etc/NetworkManager/conf.d/00-dns-resolved.conf`:
+			</para>
+			
+			<programlisting>
+[main]
+dns=none
+systemd-resolved=true
+			</programlisting>
+			
+			<para>
+				Then make sure your `/etc/nsswitch.conf` contain `resolve` in he `hosts:` line. Remove `dns` if present. Also make sure that you have 
+				installed `nss-resolve` on your system.
+			</para>
+			
+			<para>
+				Make sure your network namespace is not using your host's systemd-resolved. If your `/etc/nsswitch.conf` contains `resolve` or 
+				`resolve [!UNAVAIL=return]`, it will be used via dbus.
+			</para>
+			
+			<programlisting>
+sudo cp /etc/nsswitch.conf /etc/netns/<replaceable>namespace</replaceable>/nsswitch.conf
+			</programlisting>
+			
+			<para>Then modify `/etc/netns/<replaceable>namespace</replaceable>/nsswitch.conf` to remove `resolve` and put `dns` of not already present.</para>
+		</refsection>
+	</refentry>
+	
+	<refentry xml:id="netns-helper-services">
+		<info>
+			<author>
+				<personname><firstname>Patrick</firstname><surname>Northon</surname></personname>
+				<contrib>Developer of netns-helper.</contrib>
+			</author>
+			<productname>netns-helper</productname>
+			<!--<productnumber>1.0</productnumber>-->
+		</info>
+		
+		<refmeta>
+			<refentrytitle>netns-helper-services</refentrytitle>
+			<manvolnum>1</manvolnum>
+		</refmeta>
+		
+		<refmiscinfo source="netns-helper-services" />
+		
+		<refnamediv>
+			<refname>netns-helper-services</refname>
+			<refpurpose>netns-helper service files</refpurpose>
+		</refnamediv>
+		
+		<refsection>
+			<title>Services</title>
+			
+			<variablelist>
+				<varlistentry>
+					<term><constant>netns-helper@.target</constant></term>
+					<listitem>
+						<para>Services for a network namespace are grouped into a target under the namespace's name.</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper@.service</constant></term>
+					<listitem>
+						<para>
+							Create a network namespace. Services should either use `JoinsNamespaceOf=` or use ip command 
+							<command>ip netns exec <replaceable>namespace</replaceable></command> to execute inside the network namespace. Services should 
+							also bind to the following files if present:
+						</para>
+						
+						<programlisting>
+BindPaths=-/etc/netns/<replaceable>namespace</replaceable>/resolv.conf:/etc/resolv.conf
+BindPaths=-/etc/netns/<replaceable>namespace</replaceable>/nsswitch.conf:/etc/nsswitch.conf
+						</programlisting>
+						
+						<para>This is done automatically using the <command>netns-helper add-service</command> command.</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper-macvlan@.service</constant></term>
+					<listitem>
+						<para>
+							Create a macvlan interface inside the network namespace, bridged with an interface on host defined in 
+							`/etc/netns-helper/ns/<replaceable>namespace</replaceable>-macvlan.conf`. See 
+							<citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry> for configuration.
+						</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper-dhcp@.service</constant></term>
+					<listitem>
+						<para>Run dhclient in IPv4 mode inside network namespace.</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper-dhcp6@.service</constant></term>
+					<listitem>
+						<para>Run dhclient in IPv6 mode inside network namespace.</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper-postup@.service</constant></term>
+					<listitem>
+						<para>
+							Executed after all other netns-helper services have started for a network namespace. It will run the script in 
+							`/etc/netns-helper/ns/<replaceable>namespace</replaceable>-postup` if present and executable. The script run inside the network 
+							namespace. Routes and firewall rules should be setup there.
+						</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</refsection>
+	</refentry>
+	
+</article>
