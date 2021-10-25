@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<article xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en">
+<article xmlns="http://docbook.org/ns/docbook" version="5.1" xml:lang="en">
 	<title>netns-helper manual</title>
 	
 	<refentry xml:id="netns-helper">
@@ -150,6 +150,15 @@ sudo netns-helper add-service transmission-daemon torrents --now
 			</example>
 		</refsection>
 		
+		<refsection>
+			<title>See Also</title>
+			
+			<para>
+				<citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry>, 
+				<citerefentry><refentrytitle>netns-helper-services</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+			</para>
+		</refsection>
+		
 	</refentry>
 	
 	<refentry xml:id="netns-helper-config">
@@ -275,6 +284,15 @@ sudo cp /etc/nsswitch.conf /etc/netns/<replaceable>namespace</replaceable>/nsswi
 			
 			<para>Then modify `/etc/netns/<replaceable>namespace</replaceable>/nsswitch.conf` to remove `resolve` and put `dns` of not already present.</para>
 		</refsection>
+		
+		<refsection>
+			<title>See Also</title>
+			
+			<para>
+				<citerefentry><refentrytitle>netns-helper</refentrytitle><manvolnum>1</manvolnum></citerefentry>, 
+				<citerefentry><refentrytitle>netns-helper-services</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+			</para>
+		</refsection>
 	</refentry>
 	
 	<refentry xml:id="netns-helper-services">
@@ -364,6 +382,15 @@ BindPaths=-/etc/netns/<replaceable>namespace</replaceable>/nsswitch.conf:/etc/ns
 					</listitem>
 				</varlistentry>
 			</variablelist>
+		</refsection>
+		
+		<refsection>
+			<title>See Also</title>
+			
+			<para>
+				<citerefentry><refentrytitle>netns-helper</refentrytitle><manvolnum>1</manvolnum></citerefentry>, 
+				<citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+			</para>
 		</refsection>
 	</refentry>
 	
