@@ -3,35 +3,35 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-NS=$1
-CMD=$2
+ns=$1
+cmd=$2
 
-case $CMD in
+case $cmd in
 	netns)
 		
 		case $3 in
 			create)
-				echo "Creating network namespace $NS."
+				echo "Creating network namespace $ns."
 
 				# Setup network namespace and lo interface.
 				# It is meant to be run inside an anonymous network namespace of a systemd service.
 				
 				ip link set lo up
 				
-				flock --no-fork -- /var/run/netns.lock ip netns add $NS
-				umount /var/run/netns/$NS
-				mount --bind /proc/self/ns/net /var/run/netns/$NS
+				flock --no-fork -- /var/run/netns.lock ip netns add $ns
+				umount /var/run/netns/$ns
+				mount --bind /proc/self/ns/net /var/run/netns/$ns
 
 				;;
 
 			delete)
-				echo "Deleting network namespace $NS."
+				echo "Deleting network namespace $ns."
 
-				ip netns delete $NS
+				ip netns delete $ns
 
 				;;
 			*)
-				>&2 echo "Wrong command."
+				>&2 echo 'Invalid command.'
 				exit 1
 				;;
 		esac
@@ -43,89 +43,89 @@ case $CMD in
 		case $3 in
 			create)
 				# Read config
-				if [[ ! -f /etc/netns-helper/ns/$NS-macvlan.conf ]]; then
-					>&2 echo "File /etc/netns-helper/ns/$NS-macvlan.conf not found, exiting."
+				if [[ ! -f /etc/netns-helper/ns/$ns-macvlan.conf ]]; then
+					>&2 echo "File /etc/netns-helper/ns/$ns-macvlan.conf not found, exiting."
 					exit 1
 				fi
 				
-				source /etc/netns-helper/ns/$NS-macvlan.conf
+				source /etc/netns-helper/ns/$ns-macvlan.conf
 				
-				echo "Creating macvlan interface in $NS with $PARENT_IF."
+				echo "Creating macvlan interface in $ns with $PARENT_IF."
 
 				# Setup macvlan interface and link it to parent interface.
-				ip link add nm_$NS link $PARENT_IF type macvlan mode bridge || \
+				ip link add nm_$ns link $PARENT_IF type macvlan mode bridge || \
 					{
-						>&2 echo "Failed to create macvlan interface."
+						>&2 echo 'Failed to create macvlan interface.'
 						exit 1
 					}
 				
-				ip link set nm_$NS netns $NS || \
+				ip link set nm_$ns netns $ns || \
 					{
-						>&2 echo "Failed to add macvlan to network namespace."
-						ip link delete nm_$NS
+						>&2 echo 'Failed to add macvlan to network namespace.'
+						ip link delete nm_$ns
 						exit 1
 					}
 				
 				macvlan_failed()
 				{
 					# Delete interface on failure
-					ip netns exec $NS ip link delete nm_$NS
+					ip netns exec $ns ip link delete nm_$ns
 				}
 					
 				trap 'macvlan_failed' ERR
 				
 				if [[ -v MAC && ! -z "$MAC" ]]; then
 					echo "MAC address: $MAC"
-					ip netns exec $NS ip link set nm_$NS address $MAC
+					ip netns exec $ns ip link set nm_$ns address $MAC
 				fi
 				
 				# Privacy extensions
 				if [[ -v PRIVACY_EXT && ! -z "$PRIVACY_EXT" ]]; then
-					sysctl -w net.ipv6.conf.nm_$NS.use_tempaddr=$PRIVACY_EXT
+					sysctl -w net.ipv6.conf.nm_$ns.use_tempaddr=$PRIVACY_EXT
 				fi
 				
 				# Run preup script
-				if [[ -x /etc/netns-helper/ns/$NS-macvlan-preup ]]; then
-					ip netns exec $NS /etc/netns-helper/ns/$NS-preup nm_$NS
+				if [[ -x /etc/netns-helper/ns/$ns-macvlan-preup ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-preup nm_$ns
 				fi
 				
-				ip netns exec $NS ip link set nm_$NS up
+				ip netns exec $ns ip link set nm_$ns up
 				
 				# Configure macvlan interface
 				if [[ -v IPADDR4 && ! -z "$IPADDR4" ]]; then
-					ip netns exec $NS ip address add $IPADDR4 dev nm_$NS
+					ip netns exec $ns ip address add $IPADDR4 dev nm_$ns
 				fi
 				
 				if [[ -v DEFAULT_GATEWAY4 && ! -z "$DEFAULT_GATEWAY4" ]]; then
-					ip route add default via $DEFAULT_GATEWAY4 dev nm_$NS onlink
+					ip route add default via $DEFAULT_GATEWAY4 dev nm_$ns onlink
 				fi
 				
 				if [[ -v IPADDR6 && ! -z "$IPADDR6" ]]; then
-					ip netns exec $NS ip -6 address add $IPADDR6 dev nm_$NS
+					ip netns exec $ns ip -6 address add $IPADDR6 dev nm_$ns
 				fi
 				
 				if [[ -v DEFAULT_GATEWAY6 && ! -z "$DEFAULT_GATEWAY6" ]]; then
-					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$NS onlink
+					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$ns onlink
 				fi
 				
-				echo "Macvlan interface:"
-				ip netns exec $NS ip link show nm_$NS
+				echo 'Macvlan interface:'
+				ip netns exec $ns ip link show nm_$ns
 
-				mkdir -p /run/netmachine/$NS
+				mkdir -p /run/netmachine/$ns
 				
 				# Run postup script
-				if [[ -x /etc/netns-helper/ns/$NS-macvlan-postup ]]; then
-					ip netns exec $NS /etc/netns-helper/ns/$NS-postup nm_$NS
+				if [[ -x /etc/netns-helper/ns/$ns-macvlan-postup ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-postup nm_$ns
 				fi
 
 				;;
 			delete)
-				echo "Deleting macvlan interface in namespace $NS."
-				ip netns exec $NS ip link delete nm_$NS
+				echo "Deleting macvlan interface in namespace $ns."
+				ip netns exec $ns ip link delete nm_$ns
 
 				;;
 			*)
-				>&2 echo "Wrong command."
+				>&2 echo 'Invalid command.'
 				exit 1
 				;;
 		esac
@@ -134,14 +134,14 @@ case $CMD in
 		
 	postup)
 		
-		if [[ -x /etc/netns-helper/ns/$NS-postup ]]; then
-			/etc/netns-helper/ns/$NS-postup
+		if [[ -x /etc/netns-helper/ns/$ns-postup ]]; then
+			/etc/netns-helper/ns/$ns-postup
 		fi
 		
 		;;
 		
 	*)
-		>&2 echo "Wrong command."
+		>&2 echo 'Invalid command.'
 		exit 1
 		;;
 esac

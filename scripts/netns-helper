@@ -3,55 +3,55 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-AVAIL_FEATURES=(dhcp dhcp6 macvlan)
+avail_features=(dhcp dhcp6 macvlan)
 
-OPT_OVERWRITE=no
-OPT_PARENT_IF=
-OPT_NOW=no
-OPT_MAC=
-OPT_HELP=
+opt_overwrite=no
+opt_parent_if=
+opt_now=no
+opt_mac=
+opt_help=
 
-PARGS=()
+pargs=()
 while [[ $# -gt 0 ]]; do
 	if [[ $1 == '-'* ]]; then
 		case "$1" in
 			--parent_if)
-				OPT_PARENT_IF="$2"
+				opt_parent_if="$2"
 				shift 2
 			;;
 			
 			--mac)
-				OPT_MAC="$2"
+				opt_mac="$2"
 				shift 2
 			;;
 			
 			--overwrite)
-				OPT_OVERWRITE=yes
+				opt_overwrite=yes
 				shift 1
 			;;
 			
 			--now)
-				OPT_NOW=yes
+				opt_now=yes
 				shift 1
 			;;
 			
 			--help)
-				OPT_HELP=yes
+				opt_help=yes
 				shift 1
 			;;
 			
 			*)
-				>&2 echo "Invalid option."
+				>&2 echo 'Invalid option.'
 				exit 1
 			;;
 		esac
 	else
-		PARGS+=($1)
+		pargs+=($1)
 		shift 1
 	fi
 done
 
-if [[ "$OPT_HELP" == "yes" ]]; then
+if [[ "$opt_help" == 'yes' ]]; then
 	
 	cat <<-EOF
 		Switches:
@@ -78,33 +78,33 @@ if [[ "$OPT_HELP" == "yes" ]]; then
 	
 fi
 
-FLAGS=()
-if [[ "$OPT_NOW" == yes ]]; then FLAGS+=(--now); fi
+flags=()
+if [[ "$opt_now" == 'yes' ]]; then flags+=(--now); fi
 
 read_service()
 {
-	SERVICE="$1"
+	service="$1"
 	
-	[[ ! -z "$SERVICE" ]] || \
+	[[ ! -z "$service" ]] || \
 		{
-			>&2 echo "No service given."
+			>&2 echo 'No service given.'
 			exit 1
 		}
 	
-	if [[ $SERVICE != *.service ]]; then
-		SERVICE="${SERVICE}.service"
+	if [[ $service != *.service ]]; then
+		service="${service}.service"
 	fi
 
-	[[ ! -z $(systemctl list-unit-files --full --all --no-legend --type service "$SERVICE") ]] || \
+	[[ ! -z $(systemctl list-unit-files --full --all --no-legend --type service "$service") ]] || \
 		{
-			>&2 echo "Service \`$SERVICE\` not found."
+			>&2 echo "Service \`$service\` not found."
 			return 1
 		}
 }
 
 feature_is_valid()
 {
-	for f in ${AVAIL_FEATURES[@]}; do [[ "$f" == "$1" ]] && return 0; done
+	for f in ${avail_features[@]}; do [[ "$f" == "$1" ]] && return 0; done
 	return 1
 }
 
@@ -124,8 +124,8 @@ add_features()
 	for feature in "$@"; do
 		case "$feature" in
 			macvlan)
-				if [[ "$OPT_OVERWRITE" == yes || ! -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]]; then
-					[[ ! -z "$OPT_PARENT_IF" ]] || \
+				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]]; then
+					[[ ! -z "$opt_parent_if" ]] || \
 						{
 							>&2 echo "The parent interface of the macvlan interface must be specified with option \`--parent_if <interface>\`."
 							exit 1
@@ -136,8 +136,8 @@ add_features()
 						
 					umask 022
 					cat > "/etc/netns-helper/ns/$NS-macvlan.conf" <<- EOF
-						PARENT_IF="$OPT_PARENT_IF"
-						MAC=$OPT_MAC
+						PARENT_IF="$opt_parent_if"
+						MAC=$opt_mac
 					EOF
 				else
 					[[ -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]] && \
@@ -146,137 +146,137 @@ add_features()
 			;;
 		esac
 		
-		systemctl enable netns-helper-$feature@$NS.service "${FLAGS[@]}"
+		systemctl enable netns-helper-$feature@$NS.service "${flags[@]}"
 	done
 }
 
-case ${PARGS[0]:-} in
+case ${pargs[0]:-} in
 	add-service)
-		read_service "${PARGS[1]:-}"
-		NS=${PARGS[2]:-}
+		read_service "${pargs[1]:-}"
+		ns=${pargs[2]:-}
 		
-		[[ ! -z "$NS" ]] || \
+		[[ ! -z "$ns" ]] || \
 			{
-				>&2 echo "No namespace given."
+				>&2 echo 'No namespace given.'
 				exit 1
 			}
 		
 		umask 022
 		
-		mkdir -p "/etc/systemd/system/$SERVICE.d"
-		cat > "/etc/systemd/system/$SERVICE.d/netns-helper.conf" <<- EOF
+		mkdir -p "/etc/systemd/system/$service.d"
+		cat > "/etc/systemd/system/$service.d/netns-helper.conf" <<- EOF
 			[Unit]
-			After=netns-helper@${NS}.target
-			Requisite=netns-helper@${NS}.target
-			PartOf=netns-helper@${NS}.target
-			JoinsNamespaceOf=netns-helper@${NS}.service
-			ConditionPathExists=/var/run/netns/${NS}
+			After=netns-helper@${ns}.target
+			Requisite=netns-helper@${ns}.target
+			PartOf=netns-helper@${ns}.target
+			JoinsNamespaceOf=netns-helper@${ns}.service
+			ConditionPathExists=/var/run/netns/${ns}
 
 			[Service]
 			PrivateNetwork=true
 
-			BindPaths=-/etc/netns/${NS}/resolv.conf:/etc/resolv.conf
-			BindPaths=-/etc/netns/${NS}/nsswitch.conf:/etc/nsswitch.conf
+			BindPaths=-/etc/netns/${ns}/resolv.conf:/etc/resolv.conf
+			BindPaths=-/etc/netns/${ns}/nsswitch.conf:/etc/nsswitch.conf
 		EOF
 		
 		systemctl daemon-reload
 		
-		if [[ "$OPT_NOW" == yes ]]; then
-			systemctl restart $SERVICE
+		if [[ "$opt_now" == 'yes' ]]; then
+			systemctl restart $service
 		fi
 		
-		echo "Service \`$SERVICE\` added to network namespace \`$NS\`."
+		echo "Service \`$service\` added to network namespace \`$ns\`."
 	;;
 	
 	remove-service)
-		read_service "${PARGS[1]}"
+		read_service "${pargs[1]}"
 		
-		rm -f "/etc/systemd/system/$SERVICE.d/netns-helper.conf"
+		rm -f "/etc/systemd/system/$service.d/netns-helper.conf"
 		
 		systemctl daemon-reload
 		
-		if [[ "$OPT_NOW" == yes ]]; then
-			systemctl restart $SERVICE
+		if [[ "$opt_now" == 'yes' ]]; then
+			systemctl restart $service
 		fi
 		
-		echo "Service \`$SERVICE\` removed from network namespace."
+		echo "Service \`$service\` removed from network namespace."
 	;;
 	
 	enable)
-		NS=${PARGS[1]:-}
+		ns=${pargs[1]:-}
 		
-		[[ ! -z "$NS" ]] || \
+		[[ ! -z "$ns" ]] || \
 			{
-				>&2 echo "No namespace given."
+				>&2 echo 'No namespace given.'
 				exit 1
 			}
 		
-		systemctl enable netns-helper@$NS.service
+		systemctl enable netns-helper@$ns.service
 		
-		add_features $NS "${PARGS[@]:2}"
+		add_features $ns "${pargs[@]:2}"
 		
-		systemctl enable netns-helper@$NS.target "${FLAGS[@]}"
+		systemctl enable netns-helper@$ns.target "${flags[@]}"
 	;;
 	
 	disable)
-		NS=${PARGS[1]:-}
+		ns=${pargs[1]:-}
 		
-		[[ ! -z "$NS" ]] || \
+		[[ ! -z "$ns" ]] || \
 			{
-				>&2 echo "No namespace given."
+				>&2 echo 'No namespace given.'
 				exit 1
 			}
 			
-		features=(${PARGS[@]:2})
+		features=(${pargs[@]:2})
 		
 		if [[ ${#features[@]} == 0 ]]; then
-			systemctl disable netns-helper@$NS.target "${FLAGS[@]}"
+			systemctl disable netns-helper@$ns.target "${flags[@]}"
 		else
 			for feature in ${features[@]}; do
-				systemctl disable netns-helper-$feature@$NS.service "${FLAGS[@]}"
+				systemctl disable netns-helper-$feature@$ns.service "${flags[@]}"
 			done
 		fi
 		
-		systemctl disable netns-helper@$NS.target "${FLAGS[@]}"
+		systemctl disable netns-helper@$ns.target "${flags[@]}"
 	;;
 	
 	status)
-		NS=${PARGS[1]:-}
+		ns=${pargs[1]:-}
 		
-		if [[ -z "$NS" ]]; then
+		if [[ -z "$ns" ]]; then
 			namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --full | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/netns-helper@\2.target/')
 			for n in ${namespaces//\\n/}; do
 				systemctl list-dependencies "$n"
 			done
 		else
-			systemctl list-dependencies "netns-helper@${NS}.target"
+			systemctl list-dependencies "netns-helper@${ns}.target"
 		fi
 	;;
 	
 	start)
-		NS=${PARGS[1]:-}
+		ns=${pargs[1]:-}
 		
-		systemctl start netns-helper@$NS.target
+		systemctl start netns-helper@$ns.target
 	;;
 	
 	stop)
-		NS=${PARGS[1]:-}
+		ns=${pargs[1]:-}
 		
-		systemctl stop netns-helper@$NS.target
+		systemctl stop netns-helper@$ns.target
 	;;
 	
 	restart)
-		NS=${PARGS[1]:-}
+		ns=${pargs[1]:-}
 		
-		systemctl restart netns-helper@$NS.target
+		systemctl restart netns-helper@$ns.target
 	;;
 	
 	list)
-		systemctl list-units --all --type target "netns-helper*"
+		systemctl list-units --all --type target 'netns-helper*'
 	;;
 	
 	*)
-		>&2 echo "Wrong command."
+		>&2 echo 'Invalid command.'
 		exit 1
 	;;
 esac
