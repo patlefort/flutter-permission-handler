@@ -8,10 +8,9 @@ PartOf=netns-helper@%i.target
 [Service]
 Type=oneshot
 RemainAfterExit=true
-Environment=PREFIX=/
 
-ExecStart=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan create
-ExecStop=env ${PREFIX}/lib/netns-helper/netns-helperctl %i macvlan delete
+ExecStart=env @PREFIX@/lib/netns-helper/netns-helperctl %i macvlan create
+ExecStop=env @PREFIX@/lib/netns-helper/netns-helperctl %i macvlan delete
 
 [Install]
 RequiredBy=netns-helper@%i.target

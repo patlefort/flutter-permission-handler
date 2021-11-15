@@ -99,7 +99,7 @@
 				<varlistentry>
 					<term><command>add-service</command> <replaceable>service</replaceable> <replaceable>namespace</replaceable></term>
 					<listitem><para>
-						Put a service into a network namespace. This command will create a file in `/etc/systemd/system/&lt;service&gt;.d/netns-helper.conf`. 
+						Put a service into a network namespace. This command will create a file in `/etc/systemd/system/<replaceable>service</replaceable>.d/netns-helper.conf`. 
 						The service will only start if the network namespace target unit is activated.
 					</para></listitem>
 				</varlistentry>

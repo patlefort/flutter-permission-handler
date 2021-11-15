@@ -1,9 +1,9 @@
 #!/bin/sh
 
-PREFIX=$1
+PREFIX="${PREFIX:-/usr/local}"
 
-rm -f "$PREFIX/lib/systemd/system/netns-helper"/*
-rm -f "$PREFIX/bin/netns-helperctl"
-rm -f "$PREFIX/bin/netns-dhclient-script-wrapper"
+rm -rvf "$PREFIX/lib/systemd/system/netns-helper"*
+rm -rvf "$PREFIX/lib/netns-helper"
+rm -vf "$PREFIX/bin/netns-helper"
 
 systemctl daemon-reload

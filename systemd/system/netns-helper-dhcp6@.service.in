@@ -1,5 +1,5 @@
 [Unit]
-Description=Run dhclient in a network namespace.
+Description=Run dhclient in ipv6 mode in a network namespace.
 After=netns-helper@%i.service
 Before=netns-helper-postup@%i.service
 BindsTo=netns-helper@%i.service
@@ -10,14 +10,14 @@ PartOf=netns-helper@%i.target
 Type=simple
 RuntimeDirectory=netns-helper-%i
 ConfigurationDirectory=netns-helper
-PIDFile=%t/netns-helper-%i/dhclient.pid
+PIDFile=%t/netns-helper-%i/dhclient6.pid
 
-Environment=DHCLIENT_SCRIPT_WRAPPER=/usr/lib/netns-helper/netns-dhclient-script-wrapper
+Environment=DHCLIENT_SCRIPT_WRAPPER=@PREFIX@/lib/netns-helper/netns-dhclient-script-wrapper
 
 BindPaths=-/etc/netns/%i/resolv.conf:/etc/resolv.conf
 BindPaths=-/etc/netns/%i/nsswitch.conf:/etc/nsswitch.conf
 
-ExecStart=env dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf "/etc/netns-helper/ns/%i-dhclient.conf"
+ExecStart=env dhclient -6 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient6.pid -lf %t/netns-helper-%i/dhclient6.lease -cf /etc/netns-helper/ns/%i-dhclient6.conf -df %t/netns-helper-%i/dhclient6-duid.lease
 
 PrivateNetwork=true
 ProtectSystem=true
