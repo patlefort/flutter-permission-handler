@@ -1,11 +1,38 @@
 #/usr/bin/env bash
 
+__netns_helper_systemctl() {
+	local mode=$1; shift 1
+	systemctl $mode --full --legend=no --no-pager --plain "$@" 2>/dev/null
+}
+
+_netns_helper_find_namespaces()
+{
+	__netns_helper_systemctl --system list-units --type target "netns-helper@*.target" --all | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/\2/'
+}
+
+_netns_helper_find_services()
+{
+	__netns_helper_systemctl --system list-unit-files "$1*"
+	__netns_helper_systemctl --system list-units --all "$1*"
+}
+
+_netns_helper_find_namespace_services()
+{
+	local namespaces=$(_netns_helper_find_namespaces)
+	
+	for ns in $namespaces; do
+		__netns_helper_systemctl --system list-dependencies "netns-helper@${ns}.target" \
+			 | sed -r 's/^(\s*)(.*)/\2/' \
+			 | grep -v -G '^netns-helper.*'
+	done
+}
+
 _netns_helper_completion()
 {
-	declare -A switches
-	switches=([--now]=1 [--overwrite]=1 [--parent_if]=1 [--mac]=1 [--help]=1)
-	declare -A actions
-	actions=([enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 [restart]=1 [stop]=1)
+	local -A switches=([--now]=1 [--overwrite]=1 [--parent_if]=1 [--mac]=1 [--help]=1)
+	local -A actions=([enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 [restart]=1 [stop]=1)
+	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1)
+	local command command_index parguments=()
 	
 	for i in "${!COMP_WORDS[@]}"; do
 		[[ $i = $COMP_CWORD || $i = 0 ]] && continue
@@ -14,15 +41,60 @@ _netns_helper_completion()
 		
 		if [[ "$word" =~ ^-.* ]]; then
 			unset switches["$word"]
-		elif [ ${actions[$word]+_} ]; then
-			actions=()
+		else
+			if [ ${actions[$word]+_} ]; then
+				command_index=${#parguments[@]}
+				command="$word"
+				actions=()
+			fi
+			parguments+=("$word")
 		fi
 	done
 	
-	if [[ "${COMP_WORDS[COMP_CWORD]}" =~ ^-.* || ${#actions[@]} = 0 ]]; then
+	if [[ "${COMP_WORDS[COMP_CWORD]}" =~ ^-.* ]]; then
 		COMPREPLY=($(compgen -W "$(echo ${!switches[@]})" -- "${COMP_WORDS[COMP_CWORD]}"))
 	else
-		COMPREPLY=($(compgen -W "$(echo ${!actions[@]})" -- "${COMP_WORDS[COMP_CWORD]}"))
+		case "$command" in
+			enable | disable)
+				
+				if (( command_index+1 >= ${#parguments[@]} )); then
+					COMPREPLY=($(compgen -W "$(_netns_helper_find_namespaces)" -- "${COMP_WORDS[COMP_CWORD]}"))
+				else
+					for ((i=command_index+2; i<${#parguments[@]}; i++)); do
+						unset features["${parguments[$i]}"]
+					done
+					
+					COMPREPLY=($(compgen -W "$(echo ${!features[@]})" -- "${COMP_WORDS[COMP_CWORD]}"))
+				fi
+			;;
+			
+			start | restart | stop | status)
+				if (( command_index+1 >= ${#parguments[@]} )); then
+					COMPREPLY=($(compgen -W "$(_netns_helper_find_namespaces)" -- "${COMP_WORDS[COMP_CWORD]}"))
+				fi
+			;;
+			
+			add-service)
+				if (( command_index+1 >= ${#parguments[@]} )); then
+					comps=$(_netns_helper_find_services "${COMP_WORDS[COMP_CWORD]}")
+					COMPREPLY=($(compgen -o filenames -W "$comps" -- "${COMP_WORDS[COMP_CWORD]}"))
+					compopt -o filenames
+				elif (( command_index+2 >= ${#parguments[@]} )); then
+					COMPREPLY=($(compgen -W "$(_netns_helper_find_namespaces)" -- "${COMP_WORDS[COMP_CWORD]}"))
+				fi
+			;;
+			
+			remove-service)
+				if (( command_index+1 >= ${#parguments[@]} )); then
+					COMPREPLY=($(compgen -o filenames -W "$(_netns_helper_find_namespace_services)" -- "${COMP_WORDS[COMP_CWORD]}"))
+					compopt -o filenames
+				fi
+			;;
+			
+			*)
+				COMPREPLY=($(compgen -W "$(echo ${!actions[@]})" -- "${COMP_WORDS[COMP_CWORD]}"))
+			;;
+		esac
 	fi
 }
 

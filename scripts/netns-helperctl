@@ -74,13 +74,13 @@ case $cmd in
 					
 				trap 'macvlan_failed' ERR
 				
-				if [[ -v MAC && ! -z "$MAC" ]]; then
+				if [[ -v MAC && -n "$MAC" ]]; then
 					echo "MAC address: $MAC"
 					ip netns exec $ns ip link set nm_$ns address $MAC
 				fi
 				
 				# Privacy extensions
-				if [[ -v PRIVACY_EXT && ! -z "$PRIVACY_EXT" ]]; then
+				if [[ -v PRIVACY_EXT && -n "$PRIVACY_EXT" ]]; then
 					sysctl -w net.ipv6.conf.nm_$ns.use_tempaddr=$PRIVACY_EXT
 				fi
 				
@@ -92,19 +92,19 @@ case $cmd in
 				ip netns exec $ns ip link set nm_$ns up
 				
 				# Configure macvlan interface
-				if [[ -v IPADDR4 && ! -z "$IPADDR4" ]]; then
+				if [[ -v IPADDR4 && -n "$IPADDR4" ]]; then
 					ip netns exec $ns ip address add $IPADDR4 dev nm_$ns
 				fi
 				
-				if [[ -v DEFAULT_GATEWAY4 && ! -z "$DEFAULT_GATEWAY4" ]]; then
+				if [[ -v DEFAULT_GATEWAY4 && -n "$DEFAULT_GATEWAY4" ]]; then
 					ip route add default via $DEFAULT_GATEWAY4 dev nm_$ns onlink
 				fi
 				
-				if [[ -v IPADDR6 && ! -z "$IPADDR6" ]]; then
+				if [[ -v IPADDR6 && -n "$IPADDR6" ]]; then
 					ip netns exec $ns ip -6 address add $IPADDR6 dev nm_$ns
 				fi
 				
-				if [[ -v DEFAULT_GATEWAY6 && ! -z "$DEFAULT_GATEWAY6" ]]; then
+				if [[ -v DEFAULT_GATEWAY6 && -n "$DEFAULT_GATEWAY6" ]]; then
 					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$ns onlink
 				fi
 				

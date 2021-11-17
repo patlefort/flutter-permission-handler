@@ -85,7 +85,7 @@ read_service()
 {
 	service="$1"
 	
-	[[ ! -z "$service" ]] || \
+	[[ -n "$service" ]] || \
 		{
 			>&2 echo 'No service given.'
 			exit 1
@@ -95,7 +95,7 @@ read_service()
 		service="${service}.service"
 	fi
 
-	[[ ! -z $(systemctl list-unit-files --full --all --no-legend --type service "$service") ]] || \
+	[[ -n $(systemctl list-unit-files --full --plain --all --no-legend --type service "$service") ]] || \
 		{
 			>&2 echo "Service \`$service\` not found."
 			return 1
@@ -125,7 +125,7 @@ add_features()
 		case "$feature" in
 			macvlan)
 				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]]; then
-					[[ ! -z "$opt_parent_if" ]] || \
+					[[ -n "$opt_parent_if" ]] || \
 						{
 							>&2 echo "The parent interface of the macvlan interface must be specified with option \`--parent_if <interface>\`."
 							exit 1
@@ -155,7 +155,7 @@ case ${pargs[0]:-} in
 		read_service "${pargs[1]:-}"
 		ns=${pargs[2]:-}
 		
-		[[ ! -z "$ns" ]] || \
+		[[ -n "$ns" ]] || \
 			{
 				>&2 echo 'No namespace given.'
 				exit 1
@@ -205,7 +205,7 @@ case ${pargs[0]:-} in
 	enable)
 		ns=${pargs[1]:-}
 		
-		[[ ! -z "$ns" ]] || \
+		[[ -n "$ns" ]] || \
 			{
 				>&2 echo 'No namespace given.'
 				exit 1
@@ -221,7 +221,7 @@ case ${pargs[0]:-} in
 	disable)
 		ns=${pargs[1]:-}
 		
-		[[ ! -z "$ns" ]] || \
+		[[ -n "$ns" ]] || \
 			{
 				>&2 echo 'No namespace given.'
 				exit 1
@@ -244,7 +244,7 @@ case ${pargs[0]:-} in
 		ns=${pargs[1]:-}
 		
 		if [[ -z "$ns" ]]; then
-			namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --full | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/netns-helper@\2.target/')
+			namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --plain --full | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/netns-helper@\2.target/')
 			for n in ${namespaces//\\n/}; do
 				systemctl list-dependencies "$n"
 			done
