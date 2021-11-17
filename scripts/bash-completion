@@ -1,0 +1,29 @@
+#/usr/bin/env bash
+
+_netns_helper_completion()
+{
+	declare -A switches
+	switches=([--now]=1 [--overwrite]=1 [--parent_if]=1 [--mac]=1 [--help]=1)
+	declare -A actions
+	actions=([enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 [restart]=1 [stop]=1)
+	
+	for i in "${!COMP_WORDS[@]}"; do
+		[[ $i = $COMP_CWORD || $i = 0 ]] && continue
+		
+		local word="${COMP_WORDS[i]}"
+		
+		if [[ "$word" =~ ^-.* ]]; then
+			unset switches["$word"]
+		elif [ ${actions[$word]+_} ]; then
+			actions=()
+		fi
+	done
+	
+	if [[ "${COMP_WORDS[COMP_CWORD]}" =~ ^-.* || ${#actions[@]} = 0 ]]; then
+		COMPREPLY=($(compgen -W "$(echo ${!switches[@]})" -- "${COMP_WORDS[COMP_CWORD]}"))
+	else
+		COMPREPLY=($(compgen -W "$(echo ${!actions[@]})" -- "${COMP_WORDS[COMP_CWORD]}"))
+	fi
+}
+
+complete -F _netns_helper_completion netns-helper

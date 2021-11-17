@@ -12,6 +12,7 @@ install -dm755 "${installdir}/lib/netns-helper"
 install -Dm755 'scripts/netns-helperctl' -t "${installdir}/lib/netns-helper/"
 install -Dm755 'scripts/netns-dhclient-script-wrapper' -t "${installdir}/lib/netns-helper/"
 install -Dm755 'scripts/netns-helper' -t "${installdir}/bin/"
+install -Dm644 'scripts/bash-completion' "${installdir}/share/bash-completion/completions/netns-helper"
 
 for unit in 'systemd/system'/*.in; do
 	unitfile="${installdir}/lib/${unit%.*}"
