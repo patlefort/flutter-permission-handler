@@ -38,9 +38,10 @@
 					<arg>add-service <replaceable>service</replaceable> <replaceable>namespace</replaceable></arg>
 					<arg>remove-service <replaceable>service</replaceable></arg>
 					<arg>status <optional><replaceable>namespace</replaceable></optional></arg>
-					<arg>start <replaceable>namespace</replaceable></arg>
-					<arg>restart <replaceable>namespace</replaceable></arg>
-					<arg>stop <replaceable>namespace</replaceable></arg>
+					<arg>start <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>restart <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>stop <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>addr <optional><replaceable>namespace</replaceable></optional></arg>
 				</group>
 			</cmdsynopsis>
 		</refsynopsisdiv>
@@ -119,9 +120,16 @@
 				</varlistentry>
 				
 				<varlistentry>
-					<term><command>start</command> | <command>restart</command> | <command>stop</command> <replaceable>namespace</replaceable></term>
+					<term><command>start</command> | <command>restart</command> | <command>stop</command> <optional><replaceable>namespace</replaceable></optional></term>
 					<listitem><para>
-						Start/restart/stop network namespace target. Restarting or stopping will also affect services that are part of the namespace.
+						Start/restart/stop network namespace target. Restarting or stopping will also affect services that are part of the namespace. Omitting the namespace will start/stop/restart all configured namespaces.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>addr</command> <optional><replaceable>namespace</replaceable></optional></term>
+					<listitem><para>
+						Show result of running <command>ip addr</command> inside the network namespace. Omit the namespace to display for all namespaces.
 					</para></listitem>
 				</varlistentry>
 			</variablelist>

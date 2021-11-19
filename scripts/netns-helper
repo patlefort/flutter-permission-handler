@@ -81,6 +81,20 @@ fi
 flags=()
 if [[ "$opt_now" == 'yes' ]]; then flags+=(--now); fi
 
+tput_checked()
+{
+	tput "$@" 2>/dev/null || true
+}
+ocol_label="$(tput_checked setaf 3)"
+ocol_reset="$(tput_checked sgr0)"
+
+echo_title()
+{
+	echo
+	echo -e " - ${ocol_label}$1${ocol_reset} - "
+	echo
+}
+
 read_service()
 {
 	service="$1"
@@ -148,6 +162,18 @@ add_features()
 		
 		systemctl enable netns-helper-$feature@$NS.service "${flags[@]}"
 	done
+}
+
+get_namespaces()
+{
+	local ns=${1:-}
+	
+	if [[ -z $ns ]]; then
+		namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --plain --full \
+			| sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/\2/')
+	else
+		namespaces=($ns)
+	fi
 }
 
 case ${pargs[0]:-} in
@@ -230,45 +256,59 @@ case ${pargs[0]:-} in
 		features=(${pargs[@]:2})
 		
 		if [[ ${#features[@]} == 0 ]]; then
+			echo "Disabling namespace \`$ns\`..."
 			systemctl disable netns-helper@$ns.target "${flags[@]}"
 		else
 			for feature in ${features[@]}; do
+				echo "Disabling feature \`$feature\` in \`$ns\`..."
 				systemctl disable netns-helper-$feature@$ns.service "${flags[@]}"
 			done
 		fi
-		
-		systemctl disable netns-helper@$ns.target "${flags[@]}"
 	;;
 	
 	status)
-		ns=${pargs[1]:-}
+		get_namespaces ${pargs[1]:-}
 		
-		if [[ -z "$ns" ]]; then
-			namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --plain --full | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/netns-helper@\2.target/')
-			for n in ${namespaces//\\n/}; do
-				systemctl list-dependencies "$n"
-			done
-		else
-			systemctl list-dependencies "netns-helper@${ns}.target"
-		fi
+		for n in $namespaces; do
+			echo_title $n
+			systemctl list-dependencies netns-helper@$n.target
+		done
 	;;
 	
 	start)
-		ns=${pargs[1]:-}
+		get_namespaces ${pargs[1]:-}
 		
-		systemctl start netns-helper@$ns.target
+		for n in $namespaces; do
+			echo "Starting namespace \`$n\`..."
+			systemctl start netns-helper@$n.target
+		done
 	;;
 	
 	stop)
-		ns=${pargs[1]:-}
+		get_namespaces ${pargs[1]:-}
 		
-		systemctl stop netns-helper@$ns.target
+		for n in $namespaces; do
+			echo "Stopping namespace \`$n\`..."
+			systemctl stop netns-helper@$n.target
+		done
 	;;
 	
 	restart)
-		ns=${pargs[1]:-}
+		get_namespaces ${pargs[1]:-}
 		
-		systemctl restart netns-helper@$ns.target
+		for n in $namespaces; do
+			echo "Restarting namespace \`$n\`..."
+			systemctl restart netns-helper@$n.target
+		done
+	;;
+	
+	addr)
+		get_namespaces ${pargs[1]:-}
+		
+		for n in $namespaces; do
+			echo_title $n
+			ip netns exec $n ip addr
+		done
 	;;
 	
 	list)
