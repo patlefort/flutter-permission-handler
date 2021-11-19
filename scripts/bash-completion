@@ -66,7 +66,7 @@ _netns_helper_completion()
 				fi
 			;;
 			
-			start | restart | stop | status | addr)
+			start | restart | stop | status | addr | purge)
 				if (( command_index+1 >= ${#parguments[@]} )); then
 					COMPREPLY=($(compgen -W "$(_netns_helper_find_namespaces)" -- "${COMP_WORDS[COMP_CWORD]}"))
 				fi

@@ -35,6 +35,7 @@
 				<group choice="req">
 					<arg>enable <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></arg>
 					<arg>disable <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></arg>
+					<arg>purge <replaceable>namespace</replaceable></arg>
 					<arg>add-service <replaceable>service</replaceable> <replaceable>namespace</replaceable></arg>
 					<arg>remove-service <replaceable>service</replaceable></arg>
 					<arg>status <optional><replaceable>namespace</replaceable></optional></arg>
@@ -94,6 +95,13 @@
 					<listitem><para>
 						Disable a namespace. If a list of features is given, only the given features are disabled. Service units that are part of the 
 						network namespace (added with command <command>add-service</command>) will not start while the namespace target unit is disabled.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>purge</command> <replaceable>namespace</replaceable></term>
+					<listitem><para>
+						Disable a namespace and all its features.
 					</para></listitem>
 				</varlistentry>
 				

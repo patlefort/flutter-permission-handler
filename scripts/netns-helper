@@ -63,10 +63,12 @@ if [[ "$opt_help" == 'yes' ]]; then
 		Commands:
 		  enable <namespace> [<list of features>]
 		  disable <namespace> [<list of features>]
+			purge <namespace>
 		  add-service <service> <namespace>
 		  remove-service <service>
 		  status [<namespace>]
-		  start|restart|stop <namespace>
+		  start|restart|stop [<namespace>]
+			addr [<namespace>]
 			
 		Features:
 		  dhcp                         Start a dhcp client inside namespace.
@@ -264,6 +266,25 @@ case ${pargs[0]:-} in
 				systemctl disable netns-helper-$feature@$ns.service "${flags[@]}"
 			done
 		fi
+	;;
+	
+	purge)
+		ns=${pargs[1]:-}
+		
+		[[ -n "$ns" ]] || \
+			{
+				>&2 echo 'No namespace given.'
+				exit 1
+			}
+		
+		echo "Purging namespace \`$ns\`..."
+		
+		systemctl disable netns-helper@$ns.target "${flags[@]}"
+		systemctl disable netns-helper@$ns.service "${flags[@]}"
+		
+		for feature in ${avail_features[@]}; do
+			systemctl disable netns-helper-$feature@$ns.service "${flags[@]}"
+		done
 	;;
 	
 	status)
