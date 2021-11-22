@@ -1,4 +1,5 @@
-__netns_helper_systemctl() {
+__netns_helper_systemctl()
+{
 	local mode=$1; shift 1
 	systemctl $mode --full --legend=no --no-pager --plain "$@" 2>/dev/null
 }
@@ -28,7 +29,9 @@ _netns_helper_find_namespace_services()
 _netns_helper_completion()
 {
 	local -A switches=([--now]=1 [--overwrite]=1 [--parent_if]=1 [--mac]=1 [--help]=1)
-	local -A actions=([enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 [restart]=1 [stop]=1 [addr]=1)
+	local -A actions=(
+		[enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 
+		[restart]=1 [stop]=1 [addr]=1 [purge]=1 [route]=1 [rules]=1)
 	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1)
 	local command command_index parguments=()
 	
@@ -66,7 +69,7 @@ _netns_helper_completion()
 				fi
 			;;
 			
-			start | restart | stop | status | addr | purge)
+			start | restart | stop | status | addr | purge | route | rules)
 				if (( command_index+1 >= ${#parguments[@]} )); then
 					COMPREPLY=($(compgen -W "$(_netns_helper_find_namespaces)" -- "${COMP_WORDS[COMP_CWORD]}"))
 				fi

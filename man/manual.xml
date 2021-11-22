@@ -43,6 +43,8 @@
 					<arg>restart <optional><replaceable>namespace</replaceable></optional></arg>
 					<arg>stop <optional><replaceable>namespace</replaceable></optional></arg>
 					<arg>addr <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>route <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>rules <optional><replaceable>namespace</replaceable></optional></arg>
 				</group>
 			</cmdsynopsis>
 		</refsynopsisdiv>
@@ -137,7 +139,21 @@
 				<varlistentry>
 					<term><command>addr</command> <optional><replaceable>namespace</replaceable></optional></term>
 					<listitem><para>
-						Show result of running <command>ip addr</command> inside the network namespace. Omit the namespace to display for all namespaces.
+						Show result of running <command>ip addr</command> inside the network namespace. Omit the namespace to display for all namespaces. Offered for convenience.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>route</command> <optional><replaceable>namespace</replaceable></optional></term>
+					<listitem><para>
+						Show result of running <command>ip route</command> and <command>ip -6 route</command> inside the network namespace. Omit the namespace to display for all namespaces. Offered for convenience.
+					</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command>rules</command> <optional><replaceable>namespace</replaceable></optional></term>
+					<listitem><para>
+						Show result of running <command>iptables --list-rules</command> and <command>ip6tables --list-rules</command> inside the network namespace. Omit the namespace to display for all namespaces. Offered for convenience.
 					</para></listitem>
 				</varlistentry>
 			</variablelist>

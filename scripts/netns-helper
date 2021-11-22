@@ -69,6 +69,8 @@ if [[ "$opt_help" == 'yes' ]]; then
 		  status [<namespace>]
 		  start|restart|stop [<namespace>]
 			addr [<namespace>]
+			route [<namespace>]
+			rules [<namespace>]
 			
 		Features:
 		  dhcp                         Start a dhcp client inside namespace.
@@ -88,6 +90,7 @@ tput_checked()
 	tput "$@" 2>/dev/null || true
 }
 ocol_label="$(tput_checked setaf 3)"
+ocol_sublabel="$(tput_checked setaf 5)"
 ocol_reset="$(tput_checked sgr0)"
 
 echo_title()
@@ -95,6 +98,11 @@ echo_title()
 	echo
 	echo -e " - ${ocol_label}$1${ocol_reset} - "
 	echo
+}
+
+echo_subtitle()
+{
+	echo -e "  [${ocol_sublabel}$1${ocol_reset}]"
 }
 
 read_service()
@@ -329,6 +337,34 @@ case ${pargs[0]:-} in
 		for n in $namespaces; do
 			echo_title $n
 			ip netns exec $n ip addr
+		done
+	;;
+	
+	route)
+		get_namespaces ${pargs[1]:-}
+		
+		for n in $namespaces; do
+			echo_title $n
+			
+			echo_subtitle "IPv4"
+			ip netns exec $n ip route
+			
+			echo_subtitle "IPv6"
+			ip netns exec $n ip -6 route
+		done
+	;;
+	
+	rules)
+		get_namespaces ${pargs[1]:-}
+		
+		for n in $namespaces; do
+			echo_title $n
+			
+			echo_subtitle "IPv4"
+			ip netns exec $n iptables --list-rules
+			
+			echo_subtitle "IPv6"
+			ip netns exec $n ip6tables --list-rules
 		done
 	;;
 	
