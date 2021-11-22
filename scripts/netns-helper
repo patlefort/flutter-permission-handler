@@ -70,7 +70,7 @@ if [[ "$opt_help" == 'yes' ]]; then
 		  start|restart|stop [<namespace>]
 			addr [<namespace>]
 			route [<namespace>]
-			rules [<namespace>]
+			ruleset [<namespace>]
 			
 		Features:
 		  dhcp                         Start a dhcp client inside namespace.
@@ -354,17 +354,12 @@ case ${pargs[0]:-} in
 		done
 	;;
 	
-	rules)
+	ruleset)
 		get_namespaces ${pargs[1]:-}
 		
 		for n in $namespaces; do
 			echo_title $n
-			
-			echo_subtitle "IPv4"
-			ip netns exec $n iptables --list-rules
-			
-			echo_subtitle "IPv6"
-			ip netns exec $n ip6tables --list-rules
+			ip netns exec $n nft list ruleset
 		done
 	;;
 	
