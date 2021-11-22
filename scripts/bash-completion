@@ -31,7 +31,7 @@ _netns_helper_completion()
 	local -A switches=([--now]=1 [--overwrite]=1 [--parent_if]=1 [--mac]=1 [--help]=1)
 	local -A actions=(
 		[enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 
-		[restart]=1 [stop]=1 [addr]=1 [purge]=1 [route]=1 [rules]=1 [nat]=1)
+		[restart]=1 [stop]=1 [addr]=1 [purge]=1 [route]=1 [ruleset]=1)
 	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1)
 	local command command_index parguments=()
 	
