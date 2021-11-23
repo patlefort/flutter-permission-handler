@@ -1,0 +1,16 @@
+[Unit]
+Description=Create a veth interface in a network namespace and use NAT to give network access to namespace.
+After=netns-helper@%i.service
+Before=netns-helper-postup@%i.service
+BindsTo=netns-helper@%i.service
+PartOf=netns-helper@%i.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=env @PREFIX@/lib/netns-helper/netns-helperctl %i nat create
+ExecStop=env @PREFIX@/lib/netns-helper/netns-helperctl %i nat delete
+
+[Install]
+RequiredBy=netns-helper@%i.target

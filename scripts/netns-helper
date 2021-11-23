@@ -3,18 +3,31 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-avail_features=(dhcp dhcp6 macvlan)
+avail_features=(dhcp dhcp6 macvlan nat)
 
 opt_overwrite=no
 opt_parent_if=
 opt_now=no
 opt_mac=
 opt_help=
+opt_macvlan_mode=
+opt_privacy_ext=
+opt_ipaddr4=
+opt_ipaddr6=
+opt_ipaddr4_peer=
+opt_ipaddr6_peer=
+opt_default_gateway4=
+opt_default_gateway6=
+opt_gateway_metric=
 
 pargs=()
 while [[ $# -gt 0 ]]; do
 	if [[ $1 == '-'* ]]; then
 		case "$1" in
+			--)
+				shift 1
+				break
+			;;
 			--parent_if)
 				opt_parent_if="$2"
 				shift 2
@@ -22,6 +35,51 @@ while [[ $# -gt 0 ]]; do
 			
 			--mac)
 				opt_mac="$2"
+				shift 2
+			;;
+			
+			--macvlan_mode)
+				opt_macvlan_mode="$2"
+				shift 2
+			;;
+			
+			--privacy_ext)
+				opt_privacy_ext="$2"
+				shift 2
+			;;
+			
+			--ipaddr4)
+				opt_ipaddr4="$2"
+				shift 2
+			;;
+			
+			--ipaddr6)
+				opt_ipaddr6="$2"
+				shift 2
+			;;
+			
+			--ipaddr4_peer)
+				opt_ipaddr4_peer="$2"
+				shift 2
+			;;
+			
+			--ipaddr6_peer)
+				opt_ipaddr6_peer="$2"
+				shift 2
+			;;
+			
+			--default_gateway4)
+				opt_default_gateway4="$2"
+				shift 2
+			;;
+			
+			--default_gateway6)
+				opt_default_gateway6="$2"
+				shift 2
+			;;
+			
+			--gateway_metric)
+				opt_gateway_metric="$2"
 				shift 2
 			;;
 			
@@ -55,27 +113,38 @@ if [[ "$opt_help" == 'yes' ]]; then
 	
 	cat <<-EOF
 		Switches:
-		  --now                        Start, restart or stop services now.
-		  --overwrite                  Overwrite config with new config if applicable to feature.
-		  --parent_if <interface>      Parent interface for macvlan.
-		  --mac <mac address>          MAC address of macvlan interface.
+		  --now                          Start, restart or stop services now.
+		  --overwrite                    Overwrite config with new config if applicable to feature.
+		  --parent_if <interface>        Parent interface for macvlan.
+		  --mac <mac address>            MAC address of macvlan interface.
+		  --macvlan_mode <mode>          macvlan mode (bridge, vepa, private).
+		  --privacy_ext <value>          Privacy extensions (0, 1 or 2, see sysctl use_tempaddr).
+		  --ipaddr4 <address>            IPv4 address of interface.
+		  --ipaddr4_peer <address>       IPv4 address of peer interface.
+		  --ipaddr6 <address>            IPv6 address of interface.
+		  --ipaddr6_peer <address>       IPv6 address of peer interface.
+		  --default_gateway4 <address>   IPv4 default gateway.
+		  --default_gateway6 <address>   IPv6 default gateway.
+		  --gateway_metric <value>       Gateway metric.
 		
 		Commands:
 		  enable <namespace> [<list of features>]
 		  disable <namespace> [<list of features>]
-			purge <namespace>
+		  purge <namespace>
 		  add-service <service> <namespace>
 		  remove-service <service>
 		  status [<namespace>]
 		  start|restart|stop [<namespace>]
-			addr [<namespace>]
-			route [<namespace>]
-			ruleset [<namespace>]
-			
+		  addr [<namespace>]
+		  route [<namespace>]
+		  ruleset [<namespace>]
+		  exec [<namespace>] -- <command>
+		
 		Features:
-		  dhcp                         Start a dhcp client inside namespace.
-		  dhcp6                        Start a dhcpv6 client inside namespace.
-		  macvlan                      Create a macvlan interface inside namespace.
+		  dhcp                           Start a dhcp client inside namespace.
+		  dhcp6                          Start a dhcpv6 client inside namespace.
+		  macvlan                        Create a macvlan interface inside namespace.
+		  nat                            Connect to network with a veth pair and NAT.
 	EOF
 	
 	exit
@@ -160,12 +229,38 @@ add_features()
 						
 					umask 022
 					cat > "/etc/netns-helper/ns/$NS-macvlan.conf" <<- EOF
-						PARENT_IF="$opt_parent_if"
-						MAC=$opt_mac
+						parent_if=$opt_parent_if
+						mac=$opt_mac
+						macvlan_mode=$opt_macvlan_mode
+						privacy_ext=$opt_privacy_ext
+						ipaddr4=$opt_ipaddr4
+						default_gateway4=$opt_default_gateway4
+						ipaddr6=$opt_ipaddr6
+						default_gateway6=$opt_default_gateway6
+						gateway_metric=$opt_gateway_metric
 					EOF
 				else
 					[[ -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]] && \
 						echo "Configuration file \`/etc/netns-helper/ns/$NS-macvlan.conf\` already exists and will not be overwritten."
+				fi
+			;;
+			
+			nat)
+				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-nat.conf" ]]; then
+					[[ -f "/etc/netns-helper/ns/$NS-nat.conf" ]] && \
+						echo "Configuration file \`/etc/netns-helper/ns/$NS-nat.conf\` overwritten."
+						
+					umask 022
+					cat > "/etc/netns-helper/ns/$NS-nat.conf" <<- EOF
+						parent_if=$opt_parent_if
+						ipaddr4=$opt_ipaddr4
+						ipaddr4_peer=$opt_ipaddr4_peer
+						default_gateway4=$opt_default_gateway4
+						ipaddr6=$opt_ipaddr6
+						ipaddr6_peer=$opt_ipaddr6_peer
+						default_gateway6=$opt_default_gateway6
+						gateway_metric=$opt_gateway_metric
+					EOF
 				fi
 			;;
 		esac
@@ -360,6 +455,15 @@ case ${pargs[0]:-} in
 		for n in $namespaces; do
 			echo_title $n
 			ip netns exec $n nft list ruleset
+		done
+	;;
+	
+	exec)
+		get_namespaces ${pargs[1]:-}
+		
+		for n in $namespaces; do
+			echo_title $n
+			ip netns exec $n "$@"
 		done
 	;;
 	

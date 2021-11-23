@@ -50,10 +50,10 @@ case $cmd in
 				
 				source /etc/netns-helper/ns/$ns-macvlan.conf
 				
-				echo "Creating macvlan interface in $ns with $PARENT_IF."
+				echo "Creating macvlan interface in $ns with $parent_if."
 
 				# Setup macvlan interface and link it to parent interface.
-				ip link add nm_$ns link $PARENT_IF type macvlan mode bridge || \
+				ip link add nm_$ns link $parent_if type macvlan mode ${macvlan_mode-bridge} || \
 					{
 						>&2 echo 'Failed to create macvlan interface.'
 						exit 1
@@ -74,14 +74,14 @@ case $cmd in
 					
 				trap 'macvlan_failed' ERR
 				
-				if [[ -v MAC && -n "$MAC" ]]; then
-					echo "MAC address: $MAC"
-					ip netns exec $ns ip link set nm_$ns address $MAC
+				if [[ -v mac && -n "$mac" ]]; then
+					echo "mac address: $mac"
+					ip netns exec $ns ip link set nm_$ns address $mac
 				fi
 				
 				# Privacy extensions
-				if [[ -v PRIVACY_EXT && -n "$PRIVACY_EXT" ]]; then
-					sysctl -w net.ipv6.conf.nm_$ns.use_tempaddr=$PRIVACY_EXT
+				if [[ -v privacy_ext && -n "$privacy_ext" ]]; then
+					ip netns exec $ns sysctl -w net.ipv6.conf.nm_$ns.use_tempaddr=$privacy_ext
 				fi
 				
 				# Run preup script
@@ -92,20 +92,22 @@ case $cmd in
 				ip netns exec $ns ip link set nm_$ns up
 				
 				# Configure macvlan interface
-				if [[ -v IPADDR4 && -n "$IPADDR4" ]]; then
-					ip netns exec $ns ip address add $IPADDR4 dev nm_$ns
+				if [[ -v ipaddr4 && -n "$ipaddr4" ]]; then
+					ip netns exec $ns ip address add $ipaddr4 dev nm_$ns
 				fi
 				
-				if [[ -v DEFAULT_GATEWAY4 && -n "$DEFAULT_GATEWAY4" ]]; then
-					ip route add default via $DEFAULT_GATEWAY4 dev nm_$ns onlink
+				if [[ -v default_gateway4 && -n "$default_gateway4" ]]; then
+					ip route add default via $default_gateway4 dev nm_$ns onlink \
+						${gateway_metric:+metric $gateway_metric}
 				fi
 				
-				if [[ -v IPADDR6 && -n "$IPADDR6" ]]; then
-					ip netns exec $ns ip -6 address add $IPADDR6 dev nm_$ns
+				if [[ -v ipaddr6 && -n "$ipaddr6" ]]; then
+					ip netns exec $ns ip -6 address add $ipaddr6 dev nm_$ns
 				fi
 				
-				if [[ -v DEFAULT_GATEWAY6 && -n "$DEFAULT_GATEWAY6" ]]; then
-					ip -6 route add default via $DEFAULT_GATEWAY6 dev nm_$ns onlink
+				if [[ -v default_gateway6 && -n "$default_gateway6" ]]; then
+					ip -6 route add default via $default_gateway6 dev nm_$ns onlink \
+						${gateway_metric:+metric $gateway_metric}
 				fi
 				
 				echo 'Macvlan interface:'
@@ -131,6 +133,78 @@ case $cmd in
 		esac
 
 		;;
+		
+	nat)
+		if [[ ! -f /etc/netns-helper/ns/$ns-nat.conf ]]; then
+			>&2 echo "File /etc/netns-helper/ns/$ns-nat.conf not found, exiting."
+			exit 1
+		fi
+		
+		source /etc/netns-helper/ns/$ns-nat.conf
+		
+		case $3 in
+			create)
+				echo "Creating veth interface in $ns."
+
+				ip link add nv_$ns type veth peer name nvp_$ns
+				
+				veth_failed()
+				{
+					# Delete interface on failure
+					ip link delete nv_$ns
+				}
+				
+				trap 'veth_failed' ERR
+				
+				ip link set nvp_$ns netns $ns
+				
+				if [[ -v ipaddr4 && -n "$ipaddr4" ]]; then
+					ip address add $ipaddr4 dev nv_$ns
+				fi
+				if [[ -v ipaddr6 && -n "$ipaddr6" ]]; then
+					ip -6 address add $ipaddr6 dev nv_$ns
+				fi
+				
+				ip link set nv_$ns up
+				
+				if [[ -v ipaddr4_peer && -n "$ipaddr4_peer" ]]; then
+					ip netns exec $ns ip address add $ipaddr4_peer dev nvp_$ns
+				fi
+				if [[ -v ipaddr6_peer && -n "$ipaddr6_peer" ]]; then
+					ip netns exec $ns ip -6 address add $ipaddr6_peer dev nvp_$ns
+				fi
+				
+				ip netns exec $ns ip link set nvp_$ns up
+				
+				nft add table inet nh_nat_$ns
+				
+				if [[ -v parent_if && -n "$parent_if" ]]; then
+					nft add chain inet nh_nat_$ns postrouting "{ type nat hook postrouting priority 0; }"
+					nft add chain inet nh_nat_$ns forward "{ type filter hook forward priority 0; }"
+					nft add rule inet nh_nat_$ns forward iifname "$parent_if" oifname "nv_$ns" accept
+					nft add rule inet nh_nat_$ns forward iifname "nv_$ns" oifname "$parent_if" accept
+				fi
+				
+				if [[ -v ipaddr4 && -n "$ipaddr4" ]]; then
+					ip netns exec $ns ip route add default via ${ipaddr4%\/*} ${gateway_metric:+metric $gateway_metric}
+					nft add rule inet nh_nat_$ns postrouting oifname "$parent_if" ip saddr $ipaddr4 masquerade
+				fi
+				if [[ -v ipaddr6 && -n "$ipaddr6" ]]; then
+					ip netns exec $ns ip -6 route add default via ${ipaddr6%\/*} ${gateway_metric:+metric $gateway_metric}
+					nft add rule inet nh_nat_$ns postrouting oifname "$parent_if" ip6 saddr $ipaddr6 masquerade
+				fi
+				
+			;;
+			
+			delete)
+				echo "Deleting veth interface in namespace $ns."
+				ip link delete nv_$ns
+				nft delete table inet nh_nat_$ns
+				
+			;;
+		esac
+		
+	;;
 		
 	postup)
 		

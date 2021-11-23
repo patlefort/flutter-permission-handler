@@ -77,6 +77,51 @@
 					<term><option>--mac</option> <replaceable>mac address</replaceable></term>
 					<listitem><para>MAC address of macvlan interface.</para></listitem>
 				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--macvlan_mode</option> <replaceable>mode</replaceable></term>
+					<listitem><para>macvlan mode (bridge, vepa, private).</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--privacy_ext</option> <replaceable>value</replaceable></term>
+					<listitem><para>Privacy extensions (0, 1 or 2, see sysctl use_tempaddr).</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--ipaddr4</option> <replaceable>address</replaceable></term>
+					<listitem><para>IPv4 address of interface.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--ipaddr6</option> <replaceable>address</replaceable></term>
+					<listitem><para>IPv6 address of interface.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--ipaddr4_peer</option> <replaceable>address</replaceable></term>
+					<listitem><para>IPv4 address of peer interface.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--ipaddr6_peer</option> <replaceable>address</replaceable></term>
+					<listitem><para>IPv6 address of peer interface.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--default_gateway4</option> <replaceable>address</replaceable></term>
+					<listitem><para>IPv4 default gateway.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--default_gateway6</option> <replaceable>address</replaceable></term>
+					<listitem><para>IPv6 default gateway.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--gateway_metric</option> <replaceable>value</replaceable></term>
+					<listitem><para>Gateway metric.</para></listitem>
+				</varlistentry>
 			</variablelist>
 		</refsection>
 		
@@ -156,6 +201,13 @@
 						Show result of running <command>nft list ruleset</command> inside the network namespace. Omit the namespace to display for all namespaces. Offered for convenience.
 					</para></listitem>
 				</varlistentry>
+				
+				<varlistentry>
+					<term><command>exec</command> <optional><replaceable>namespace</replaceable></optional> -- <replaceable>command</replaceable></term>
+					<listitem><para>
+						Execute command inside the network namespace. Omit the namespace execute on all namespaces.
+					</para></listitem>
+				</varlistentry>
 			</variablelist>
 		</refsection>
 		
@@ -229,26 +281,64 @@ sudo netns-helper add-service transmission-daemon torrents --now
 						<para>Configuration for a macvlan interface.</para>
 						<programlisting>
 # Parent interface on host for macvlan interface.
-PARENT_IF=
+parent_if=
+
+# [Optional] macvlan operation mode. Defaults to bridge.
+#macvlan_mode=
 
 # [Optional] MAC address for macvlan interface. Leave empty to let iproute2 generate one.
-#MAC=
+#mac=
 
-# [Optional] Static IPv4 address
-#IPADDR4=
+# [Optional] Static IPv4 address.
+#ipaddr4=
 
-# [Optional] Default IPv4 gateway
-#DEFAULT_GATEWAY4=
+# [Optional] Default IPv4 gateway.
+#default_gateway4=
 
-# [Optional] Static IPv6 address
-#IPADDR6=
+# [Optional] Static IPv6 address.
+#ipaddr6=
 
-# [Optional] Default IPv6 gateway
-#DEFAULT_GATEWAY6=
+# [Optional] Default IPv6 gateway.
+#default_gateway6=
+
+# [Optional] Gateway metric.
+#gateway_metric=
 
 # [Optional] Privacy extensions for IPv6. 0, 1 or 2.
 # See https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt `use_tempaddr`.
-#PRIVACY_EXT=
+#privacy_ext=
+							</programlisting>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><replaceable>namespace</replaceable>-nat.conf</term>
+					<listitem>
+						<para>Configuration for NAT.</para>
+						<programlisting>
+# [Otional] Parent interface on host for NAT forwarding.
+#parent_if=
+
+# [Optional] IPv4 address for veth interface.
+#ipaddr4=
+
+# [Optional] IPv4 address for veth peer interface.
+#ipaddr4_peer=
+
+# [Optional] Default IPv4 gateway.
+#default_gateway4=
+
+# [Optional] IPv6 address for veth interface.
+#ipaddr6=
+
+# [Optional] IPv6 address for veth peer interface.
+#ipaddr6_peer=
+
+# [Optional] Default IPv6 gateway.
+#default_gateway6=
+
+# [Optional] Gateway metric.
+#gateway_metric=
 							</programlisting>
 					</listitem>
 				</varlistentry>
