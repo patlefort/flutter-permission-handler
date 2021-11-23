@@ -1,4 +1,4 @@
-__netns_helper_systemctl()
+_netns_helper_systemctl()
 {
 	local mode=$1; shift 1
 	systemctl $mode --full --legend=no --no-pager --plain "$@" 2>/dev/null
@@ -6,13 +6,13 @@ __netns_helper_systemctl()
 
 _netns_helper_find_namespaces()
 {
-	__netns_helper_systemctl --system list-units --type target "netns-helper@*.target" --all | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/\2/'
+	_netns_helper_systemctl --system list-units --type target "netns-helper@*.target" --all | sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/\2/'
 }
 
 _netns_helper_find_services()
 {
-	__netns_helper_systemctl --system list-unit-files "$1*"
-	__netns_helper_systemctl --system list-units --all "$1*"
+	_netns_helper_systemctl --system list-unit-files "$1*"
+	_netns_helper_systemctl --system list-units --all "$1*"
 }
 
 _netns_helper_find_namespace_services()
@@ -20,7 +20,7 @@ _netns_helper_find_namespace_services()
 	local namespaces=$(_netns_helper_find_namespaces)
 	
 	for ns in $namespaces; do
-		__netns_helper_systemctl --system list-dependencies "netns-helper@${ns}.target" \
+		_netns_helper_systemctl --system list-dependencies "netns-helper@${ns}.target" \
 			 | sed -r 's/^(\s*)(.*)/\2/' \
 			 | grep -v -G '^netns-helper.*'
 	done
@@ -28,13 +28,17 @@ _netns_helper_find_namespace_services()
 
 _netns_helper_completion()
 {
-	local -A switches=([--now]=1 [--overwrite]=1 [--parent_if]=1 [--mac]=1 [--help]=1)
+	local -A switches=(
+		[--now]=1 [--overwrite]=1 [--parent_if]=2 [--mac]=2 [--help]=1 [--macvlan_mode]=2
+		[--privacy_ext]=2 [--ipaddr4]=2 [--ipaddr4_peer]=2 [--ipaddr6]=2 [--ipaddr6_peer]=2
+		[--default_gateway4]=2 [--default_gateway6]=2 [--gateway_metric]=2)
 	local -A actions=(
 		[enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 
-		[restart]=1 [stop]=1 [addr]=1 [purge]=1 [route]=1 [ruleset]=1)
-	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1)
+		[restart]=1 [stop]=1 [addr]=1 [purge]=1 [route]=1 [ruleset]=1 [exec]=1)
+	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1 [nat]=1)
 	local command command_index parguments=()
 	
+	local prev_word=
 	for i in "${!COMP_WORDS[@]}"; do
 		[[ $i == $COMP_CWORD || $i == 0 ]] && continue
 		
@@ -43,13 +47,15 @@ _netns_helper_completion()
 		if [[ "$word" =~ ^-.* ]]; then
 			unset switches["$word"]
 		else
-			if [ ${actions[$word]+_} ]; then
+			if [[ ! "$prev_word" =~ ^-.* || "${switches[$prev_word]:-}" == 1 && ${actions[$word]+_} ]]; then
 				command_index=${#parguments[@]}
 				command="$word"
 				actions=()
 			fi
 			parguments+=("$word")
 		fi
+		
+		prev_word="$word"
 	done
 	
 	if [[ "${COMP_WORDS[COMP_CWORD]}" =~ ^-.* ]]; then
