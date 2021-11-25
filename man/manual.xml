@@ -31,6 +31,16 @@
 				<arg choice="opt">--overwrite</arg>
 				<arg choice="opt">--parent_if <replaceable>interface</replaceable></arg>
 				<arg choice="opt">--mac <replaceable>mac address</replaceable></arg>
+				<arg choice="opt">--macvlan_mode <replaceable>mode</replaceable></arg>
+				<arg choice="opt">--privacy_ext <replaceable>value</replaceable></arg>
+				<arg choice="opt">--ipaddr4 <replaceable>address</replaceable></arg>
+				<arg choice="opt">--ipaddr6 <replaceable>address</replaceable></arg>
+				<arg choice="opt">--ipaddr4_peer <replaceable>address</replaceable></arg>
+				<arg choice="opt">--ipaddr6_peer <replaceable>address</replaceable></arg>
+				<arg choice="opt">--default_gateway4 <replaceable>address</replaceable></arg>
+				<arg choice="opt">--default_gateway6 <replaceable>address</replaceable></arg>
+				<arg choice="opt">--gateway_metric <replaceable>value</replaceable></arg>
+				<arg choice="opt">--bridge_interface <replaceable>interface</replaceable></arg>
 				
 				<group choice="req">
 					<arg>enable <replaceable>namespace</replaceable> <optional><replaceable>list of features</replaceable></optional></arg>
@@ -45,6 +55,7 @@
 					<arg>addr <optional><replaceable>namespace</replaceable></optional></arg>
 					<arg>route <optional><replaceable>namespace</replaceable></optional></arg>
 					<arg>ruleset <optional><replaceable>namespace</replaceable></optional></arg>
+					<arg>exec <optional><replaceable>namespace</replaceable></optional></arg>
 				</group>
 			</cmdsynopsis>
 		</refsynopsisdiv>
@@ -56,6 +67,10 @@
 			
 		<refsection>
 			<title>Switches</title>
+			
+			<para>
+				Some of these switches map one-to-one with config file variables.
+			</param>
 			
 			<variablelist>
 				<varlistentry>
@@ -121,6 +136,11 @@
 				<varlistentry>
 					<term><option>--gateway_metric</option> <replaceable>value</replaceable></term>
 					<listitem><para>Gateway metric.</para></listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><option>--bridge_interface</option> <replaceable>interface</replaceable></term>
+					<listitem><para>Bridge interface to add an interface to.</para></listitem>
 				</varlistentry>
 			</variablelist>
 		</refsection>
@@ -278,7 +298,7 @@ sudo netns-helper add-service transmission-daemon torrents --now
 				<varlistentry>
 					<term><replaceable>namespace</replaceable>-macvlan.conf</term>
 					<listitem>
-						<para>Configuration for a macvlan interface.</para>
+						<para>Configuration for macvlan.</para>
 						<programlisting>
 # Parent interface on host for macvlan interface.
 parent_if=
@@ -314,7 +334,7 @@ parent_if=
 				<varlistentry>
 					<term><replaceable>namespace</replaceable>-nat.conf</term>
 					<listitem>
-						<para>Configuration for NAT.</para>
+						<para>Configuration for nat.</para>
 						<programlisting>
 # [Otional] Parent interface on host for NAT forwarding.
 #parent_if=
@@ -330,6 +350,35 @@ parent_if=
 
 # [Optional] IPv6 address for veth interface.
 #ipaddr6=
+
+# [Optional] IPv6 address for veth peer interface.
+#ipaddr6_peer=
+
+# [Optional] Default IPv6 gateway.
+#default_gateway6=
+
+# [Optional] Gateway metric.
+#gateway_metric=
+							</programlisting>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><replaceable>namespace</replaceable>-bridged.conf</term>
+					<listitem>
+						<para>Configuration for bridged.</para>
+						<programlisting>
+# Bridge interface to add an interface to.
+bridge_interface=
+
+# [Optional] MAC address for veth peer interface. Leave empty to let iproute2 generate one.
+#mac=
+
+# [Optional] IPv4 address for veth peer interface.
+#ipaddr4_peer=
+
+# [Optional] Default IPv4 gateway.
+#default_gateway4=
 
 # [Optional] IPv6 address for veth peer interface.
 #ipaddr6_peer=
@@ -472,8 +521,30 @@ BindPaths=-/etc/netns/<replaceable>namespace</replaceable>/nsswitch.conf:/etc/ns
 					<term><constant>netns-helper-macvlan@.service</constant></term>
 					<listitem>
 						<para>
-							Create a macvlan interface inside the network namespace, bridged with an interface on host defined in 
+							Create a macvlan interface inside the network namespace, attached to an interface on host defined in 
 							`/etc/netns-helper/ns/<replaceable>namespace</replaceable>-macvlan.conf`. See 
+							<citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry> for configuration.
+						</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper-nat@.service</constant></term>
+					<listitem>
+						<para>
+							Create a veth pair inside the network namespace and use NAT to have access to the outside network from inside the namespace.
+							Configured with `/etc/netns-helper/ns/<replaceable>namespace</replaceable>-nat.conf`. See 
+							<citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry> for configuration.
+						</para>
+					</listitem>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><constant>netns-helper-bridged@.service</constant></term>
+					<listitem>
+						<para>
+							Create a veth pair inside the network namespace and add it to a bridge configured in 
+							`/etc/netns-helper/ns/<replaceable>namespace</replaceable>-bridged.conf`. See 
 							<citerefentry><refentrytitle>netns-helper-config</refentrytitle><manvolnum>1</manvolnum></citerefentry> for configuration.
 						</para>
 					</listitem>

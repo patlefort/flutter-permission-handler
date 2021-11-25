@@ -1,0 +1,16 @@
+[Unit]
+Description=Create a veth interface in a network namespace and add it to a bridge.
+After=netns-helper@%i.service
+Before=netns-helper-postup@%i.service netns-helper-dhcp@%i.service netns-helper-dhcp6@%i.service
+BindsTo=netns-helper@%i.service
+PartOf=netns-helper@%i.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+ExecStart=env @PREFIX@/lib/netns-helper/netns-helperctl %i bridge create
+ExecStop=env @PREFIX@/lib/netns-helper/netns-helperctl %i bridge delete
+
+[Install]
+RequiredBy=netns-helper@%i.target

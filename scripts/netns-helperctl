@@ -75,7 +75,6 @@ case $cmd in
 				trap 'macvlan_failed' ERR
 				
 				if [[ -v mac && -n "$mac" ]]; then
-					echo "mac address: $mac"
 					ip netns exec $ns ip link set nm_$ns address $mac
 				fi
 				
@@ -97,7 +96,7 @@ case $cmd in
 				fi
 				
 				if [[ -v default_gateway4 && -n "$default_gateway4" ]]; then
-					ip route add default via $default_gateway4 dev nm_$ns onlink \
+					ip netns exec $ns ip route add default via $default_gateway4 dev nm_$ns onlink \
 						${gateway_metric:+metric $gateway_metric}
 				fi
 				
@@ -106,7 +105,7 @@ case $cmd in
 				fi
 				
 				if [[ -v default_gateway6 && -n "$default_gateway6" ]]; then
-					ip -6 route add default via $default_gateway6 dev nm_$ns onlink \
+					ip netns exec $ns ip -6 route add default via $default_gateway6 dev nm_$ns onlink \
 						${gateway_metric:+metric $gateway_metric}
 				fi
 				
@@ -135,17 +134,20 @@ case $cmd in
 		;;
 		
 	nat)
-		if [[ ! -f /etc/netns-helper/ns/$ns-nat.conf ]]; then
-			>&2 echo "File /etc/netns-helper/ns/$ns-nat.conf not found, exiting."
-			exit 1
-		fi
-		
-		source /etc/netns-helper/ns/$ns-nat.conf
-		
+
 		case $3 in
 			create)
+				# Read config
+				if [[ ! -f /etc/netns-helper/ns/$ns-nat.conf ]]; then
+					>&2 echo "File /etc/netns-helper/ns/$ns-nat.conf not found, exiting."
+					exit 1
+				fi
+				
+				source /etc/netns-helper/ns/$ns-nat.conf
+				
 				echo "Creating veth interface in $ns."
 
+				# Create a veth pair
 				ip link add nv_$ns type veth peer name nvp_$ns
 				
 				veth_failed()
@@ -158,6 +160,7 @@ case $cmd in
 				
 				ip link set nvp_$ns netns $ns
 				
+				# Configure veth pair
 				if [[ -v ipaddr4 && -n "$ipaddr4" ]]; then
 					ip address add $ipaddr4 dev nv_$ns
 				fi
@@ -176,6 +179,7 @@ case $cmd in
 				
 				ip netns exec $ns ip link set nvp_$ns up
 				
+				# Configure firewall rules and set default route
 				nft add table inet nh_nat_$ns
 				
 				if [[ -v parent_if && -n "$parent_if" ]]; then
@@ -204,6 +208,80 @@ case $cmd in
 			;;
 		esac
 		
+	;;
+	
+	bridge)
+		
+		case $3 in
+			create)
+				# Read config
+				if [[ ! -f /etc/netns-helper/ns/$ns-bridged.conf ]]; then
+					>&2 echo "File /etc/netns-helper/ns/$ns-bridged.conf not found, exiting."
+					exit 1
+				fi
+				
+				source /etc/netns-helper/ns/$ns-bridged.conf
+			
+				echo "Creating veth interface in $ns."
+				
+				# Create a veth pair
+				ip link add nb_$ns type veth peer name nbp_$ns
+				
+				veth_failed()
+				{
+					# Delete interface on failure
+					ip link delete nb_$ns
+				}
+				
+				trap 'veth_failed' ERR
+				
+				# Configure veth pair
+				ip link set nbp_$ns netns $ns
+				
+				if [[ -v mac && -n "$mac" ]]; then
+					ip netns exec $ns ip link set nbp_$ns address $mac
+				fi
+				
+				#if [[ -v ipaddr4 && -n "$ipaddr4" ]]; then
+				#	ip address add $ipaddr4 dev nb_$ns
+				#fi
+				#if [[ -v ipaddr6 && -n "$ipaddr6" ]]; then
+				#	ip -6 address add $ipaddr6 dev nb_$ns
+				#fi
+				
+				ip link set nb_$ns up
+				
+				if [[ -v ipaddr4_peer && -n "$ipaddr4_peer" ]]; then
+					ip netns exec $ns ip address add $ipaddr4_peer dev nbp_$ns
+				fi
+				if [[ -v ipaddr6_peer && -n "$ipaddr6_peer" ]]; then
+					ip netns exec $ns ip -6 address add $ipaddr6_peer dev nbp_$ns
+				fi
+				
+				ip netns exec $ns ip link set nbp_$ns up
+				
+				if [[ -v default_gateway4 && -n "$default_gateway4" ]]; then
+					ip netns exec $ns ip route add default via $default_gateway4 dev nb_$ns onlink \
+						${gateway_metric:+metric $gateway_metric}
+				fi
+				
+				if [[ -v default_gateway6 && -n "$default_gateway6" ]]; then
+					ip netns exec $ns ip -6 route add default via $default_gateway6 dev nb_$ns onlink \
+						${gateway_metric:+metric $gateway_metric}
+				fi
+				
+				ip link set nb_$ns master $bridge_interface
+				echo "Interface added to bridge $bridge_interface."
+			
+			;;
+			
+			delete)
+				echo "Deleting veth interface in namespace $ns."
+				ip link delete nb_$ns
+				
+			;;
+		esac
+	
 	;;
 		
 	postup)

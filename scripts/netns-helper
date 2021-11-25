@@ -3,7 +3,7 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-avail_features=(dhcp dhcp6 macvlan nat)
+avail_features=(dhcp dhcp6 macvlan nat bridged)
 
 opt_overwrite=no
 opt_parent_if=
@@ -19,6 +19,7 @@ opt_ipaddr6_peer=
 opt_default_gateway4=
 opt_default_gateway6=
 opt_gateway_metric=
+opt_bridge_interface=
 
 pargs=()
 while [[ $# -gt 0 ]]; do
@@ -83,6 +84,11 @@ while [[ $# -gt 0 ]]; do
 				shift 2
 			;;
 			
+			--bridge_interface)
+				opt_bridge_interface="$2"
+				shift 2
+			;;
+			
 			--overwrite)
 				opt_overwrite=yes
 				shift 1
@@ -126,6 +132,7 @@ if [[ "$opt_help" == 'yes' ]]; then
 		  --default_gateway4 <address>   IPv4 default gateway.
 		  --default_gateway6 <address>   IPv6 default gateway.
 		  --gateway_metric <value>       Gateway metric.
+		  --bridge_interface <interface> Bridge interface to add an interface to.
 		
 		Commands:
 		  enable <namespace> [<list of features>]
@@ -145,6 +152,7 @@ if [[ "$opt_help" == 'yes' ]]; then
 		  dhcp6                          Start a dhcpv6 client inside namespace.
 		  macvlan                        Create a macvlan interface inside namespace.
 		  nat                            Connect to network with a veth pair and NAT.
+		  bridged                        Create a veth pair inside namespace and add it to a bridge.
 	EOF
 	
 	exit
@@ -257,6 +265,25 @@ add_features()
 						ipaddr4_peer=$opt_ipaddr4_peer
 						default_gateway4=$opt_default_gateway4
 						ipaddr6=$opt_ipaddr6
+						ipaddr6_peer=$opt_ipaddr6_peer
+						default_gateway6=$opt_default_gateway6
+						gateway_metric=$opt_gateway_metric
+					EOF
+				fi
+			;;
+			
+			bridged)
+				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-bridged.conf" ]]; then
+					[[ -f "/etc/netns-helper/ns/$NS-bridged.conf" ]] && \
+						echo "Configuration file \`/etc/netns-helper/ns/$NS-bridged.conf\` overwritten."
+						
+					umask 022
+					cat > "/etc/netns-helper/ns/$NS-bridged.conf" <<- EOF
+						bridge_interface=$opt_bridge_interface
+						mac=$opt_mac
+						ipaddr4_peer=$opt_ipaddr4_peer
+						ipaddr4_peer=$opt_ipaddr4_peer
+						default_gateway4=$opt_default_gateway4
 						ipaddr6_peer=$opt_ipaddr6_peer
 						default_gateway6=$opt_default_gateway6
 						gateway_metric=$opt_gateway_metric

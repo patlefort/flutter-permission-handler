@@ -31,11 +31,11 @@ _netns_helper_completion()
 	local -A switches=(
 		[--now]=1 [--overwrite]=1 [--parent_if]=2 [--mac]=2 [--help]=1 [--macvlan_mode]=2
 		[--privacy_ext]=2 [--ipaddr4]=2 [--ipaddr4_peer]=2 [--ipaddr6]=2 [--ipaddr6_peer]=2
-		[--default_gateway4]=2 [--default_gateway6]=2 [--gateway_metric]=2)
+		[--default_gateway4]=2 [--default_gateway6]=2 [--gateway_metric]=2 [--bridge_interface]=2)
 	local -A actions=(
 		[enable]=1 [disable]=1 [add-service]=1 [remove-service]=1 [status]=1 [start]=1 
 		[restart]=1 [stop]=1 [addr]=1 [purge]=1 [route]=1 [ruleset]=1 [exec]=1)
-	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1 [nat]=1)
+	local -A features=([dhcp]=1 [dhcp6]=1 [macvlan]=1 [nat]=1 [bridged]=1)
 	local command command_index parguments=()
 	
 	local prev_word=
@@ -75,7 +75,7 @@ _netns_helper_completion()
 				fi
 			;;
 			
-			start | restart | stop | status | addr | purge | route | ruleset)
+			start | restart | stop | status | addr | purge | route | ruleset | exec)
 				if (( command_index+1 >= ${#parguments[@]} )); then
 					COMPREPLY=($(compgen -W "$(_netns_helper_find_namespaces)" -- "${COMP_WORDS[COMP_CWORD]}"))
 				fi
