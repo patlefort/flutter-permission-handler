@@ -9,4 +9,4 @@ PartOf=netns-helper@%i.target
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=env ip netns exec %i @PREFIX@/lib/netns-helper/netns-helperctl %i postup
+ExecStart=ip netns exec %i @PREFIX@/lib/netns-helper/netns-helperctl %i postup

@@ -9,8 +9,8 @@ PartOf=netns-helper@%i.target
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=env @PREFIX@/lib/netns-helper/netns-helperctl %i macvlan create
-ExecStop=env @PREFIX@/lib/netns-helper/netns-helperctl %i macvlan delete
+ExecStart=@PREFIX@/lib/netns-helper/netns-helperctl %i macvlan create
+ExecStop=@PREFIX@/lib/netns-helper/netns-helperctl %i macvlan delete
 
 [Install]
 RequiredBy=netns-helper@%i.target

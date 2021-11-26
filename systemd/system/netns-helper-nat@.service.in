@@ -9,8 +9,8 @@ PartOf=netns-helper@%i.target
 Type=oneshot
 RemainAfterExit=true
 
-ExecStart=env @PREFIX@/lib/netns-helper/netns-helperctl %i nat create
-ExecStop=env @PREFIX@/lib/netns-helper/netns-helperctl %i nat delete
+ExecStart=@PREFIX@/lib/netns-helper/netns-helperctl %i nat create
+ExecStop=@PREFIX@/lib/netns-helper/netns-helperctl %i nat delete
 
 [Install]
 RequiredBy=netns-helper@%i.target

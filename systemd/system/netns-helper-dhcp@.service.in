@@ -17,7 +17,7 @@ Environment=DHCLIENT_SCRIPT_WRAPPER=@PREFIX@/lib/netns-helper/netns-dhclient-scr
 BindPaths=-/etc/netns/%i/resolv.conf:/etc/resolv.conf
 BindPaths=-/etc/netns/%i/nsswitch.conf:/etc/nsswitch.conf
 
-ExecStart=env dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf "/etc/netns-helper/ns/%i-dhclient.conf"
+ExecStart=dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf "/etc/netns-helper/ns/%i-dhclient.conf"
 
 PrivateNetwork=true
 ProtectSystem=true
