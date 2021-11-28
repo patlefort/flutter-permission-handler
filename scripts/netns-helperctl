@@ -21,13 +21,13 @@ case $cmd in
 				flock --no-fork -- /var/run/netns.lock ip netns add $ns
 				umount /var/run/netns/$ns
 				mount --bind /proc/self/ns/net /var/run/netns/$ns
-
+				
 				;;
 
 			delete)
 				echo "Deleting network namespace $ns."
 
-				ip netns delete $ns
+				flock --no-fork -- /var/run/netns.lock ip netns delete $ns
 
 				;;
 			*)
@@ -202,7 +202,7 @@ case $cmd in
 			
 			delete)
 				echo "Deleting veth interface in namespace $ns."
-				ip link delete nv_$ns
+				ip link delete nv_$ns || true
 				nft delete table inet nh_nat_$ns
 				
 			;;

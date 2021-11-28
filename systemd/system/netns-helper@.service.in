@@ -11,11 +11,14 @@ After=network-online.target
 [Service]
 Type=oneshot
 RemainAfterExit=true
+RuntimeDirectory=netns-helper-%i
 
 ExecStart=@PREFIX@/lib/netns-helper/netns-helperctl %i netns create
 ExecStop=@PREFIX@/lib/netns-helper/netns-helperctl %i netns delete
 
 PrivateNetwork=true
+ProtectHostname=true
+ProtectClock=true
 
 [Install]
 RequiredBy=netns-helper@%i.target

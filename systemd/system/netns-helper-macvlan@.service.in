@@ -12,5 +12,8 @@ RemainAfterExit=true
 ExecStart=@PREFIX@/lib/netns-helper/netns-helperctl %i macvlan create
 ExecStop=@PREFIX@/lib/netns-helper/netns-helperctl %i macvlan delete
 
+ProtectHostname=true
+ProtectClock=true
+
 [Install]
 RequiredBy=netns-helper@%i.target

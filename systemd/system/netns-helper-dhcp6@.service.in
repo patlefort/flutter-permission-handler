@@ -8,7 +8,6 @@ PartOf=netns-helper@%i.target
 
 [Service]
 Type=simple
-RuntimeDirectory=netns-helper-%i
 ConfigurationDirectory=netns-helper
 PIDFile=%t/netns-helper-%i/dhclient6.pid
 
