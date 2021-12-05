@@ -5,21 +5,7 @@ shopt -s inherit_errexit
 
 avail_features=(dhcp dhcp6 macvlan nat bridged)
 
-opt_overwrite=no
-opt_parent_if=
-opt_now=no
-opt_mac=
-opt_help=
-opt_macvlan_mode=
-opt_privacy_ext=
-opt_ipaddr4=
-opt_ipaddr6=
-opt_ipaddr4_peer=
-opt_ipaddr6_peer=
-opt_default_gateway4=
-opt_default_gateway6=
-opt_gateway_metric=
-opt_bridge_interface=
+declare -A opts
 
 pargs=()
 while [[ $# -gt 0 ]]; do
@@ -30,77 +16,77 @@ while [[ $# -gt 0 ]]; do
 				break
 			;;
 			--parent_if)
-				opt_parent_if="$2"
+				opts[parent_if]="$2"
 				shift 2
 			;;
 			
 			--mac)
-				opt_mac="$2"
+				opts[mac]="$2"
 				shift 2
 			;;
 			
 			--macvlan_mode)
-				opt_macvlan_mode="$2"
+				opts[macvlan_mode]="$2"
 				shift 2
 			;;
 			
 			--privacy_ext)
-				opt_privacy_ext="$2"
+				opts[privacy_ext]="$2"
 				shift 2
 			;;
 			
 			--ipaddr4)
-				opt_ipaddr4="$2"
+				opts[idaddr4]="$2"
 				shift 2
 			;;
 			
 			--ipaddr6)
-				opt_ipaddr6="$2"
+				opts[idaddr6]="$2"
 				shift 2
 			;;
 			
 			--ipaddr4_peer)
-				opt_ipaddr4_peer="$2"
+				opts[idaddr4_peer]="$2"
 				shift 2
 			;;
 			
 			--ipaddr6_peer)
-				opt_ipaddr6_peer="$2"
+				opts[idaddr6_peer]="$2"
 				shift 2
 			;;
 			
 			--default_gateway4)
-				opt_default_gateway4="$2"
+				opts[default_gateway4]="$2"
 				shift 2
 			;;
 			
 			--default_gateway6)
-				opt_default_gateway6="$2"
+				opts[default_gateway6]="$2"
 				shift 2
 			;;
 			
 			--gateway_metric)
-				opt_gateway_metric="$2"
+				opts[gateway_metric]="$2"
 				shift 2
 			;;
 			
 			--bridge_interface)
-				opt_bridge_interface="$2"
+				opts[bridge_interface]="$2"
 				shift 2
 			;;
 			
 			--overwrite)
-				opt_overwrite=yes
+				opts[overwrite]='yes'
 				shift 1
 			;;
 			
 			--now)
-				opt_now=yes
+				opts[now]='yes'
 				shift 1
 			;;
 			
 			--help)
-				opt_help=yes
+				opts[help]='yes'
 				shift 1
 			;;
 			
@@ -115,7 +101,19 @@ while [[ $# -gt 0 ]]; do
 	fi
 done
 
-if [[ "$opt_help" == 'yes' ]]; then
+_opt_is()
+{
+	[[ -v opts["$1"] && "${opts["$1"]}" == "$2" ]] && return 0
+	return 1
+}
+
+_has_opt()
+{
+	[[ -v opts["$1"] && -n "${opts["$1"]}" ]] && return 0
+	return 1
+}
+
+if _opt_is help yes; then
 	
 	cat <<-EOF
 		Switches:
@@ -160,7 +158,7 @@ if [[ "$opt_help" == 'yes' ]]; then
 fi
 
 flags=()
-if [[ "$opt_now" == 'yes' ]]; then flags+=(--now); fi
+if _opt_is now yes; then flags+=(--now); fi
 
 tput_checked()
 {
@@ -225,8 +223,8 @@ add_features()
 	for feature in "$@"; do
 		case "$feature" in
 			macvlan)
-				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]]; then
-					[[ -n "$opt_parent_if" ]] || \
+				if _opt_is overwrite yes || [[ ! -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]]; then
+					_has_opt parent_if || \
 						{
 							>&2 echo "The parent interface of the macvlan interface must be specified with option \`--parent_if <interface>\`."
 							exit 1
@@ -237,15 +235,15 @@ add_features()
 						
 					umask 022
 					cat > "/etc/netns-helper/ns/$NS-macvlan.conf" <<- EOF
-						parent_if=$opt_parent_if
-						mac=$opt_mac
-						macvlan_mode=$opt_macvlan_mode
-						privacy_ext=$opt_privacy_ext
-						ipaddr4=$opt_ipaddr4
-						default_gateway4=$opt_default_gateway4
-						ipaddr6=$opt_ipaddr6
-						default_gateway6=$opt_default_gateway6
-						gateway_metric=$opt_gateway_metric
+						parent_if=${opts[parent_if]}
+						mac=${opts[mac]:-}
+						macvlan_mode=${opts[macvlan_mode]:-}
+						privacy_ext=${opts[privacy_ext]:-}
+						ipaddr4=${opts[ipaddr4]:-}
+						default_gateway4=${opts[default_gateway4]:-}
+						ipaddr6=${opts[ipaddr6]:-}
+						default_gateway6=${opts[default_gateway6]:-}
+						gateway_metric=${opts[gateway_metric]:-}
 					EOF
 				else
 					[[ -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]] && \
@@ -254,39 +252,44 @@ add_features()
 			;;
 			
 			nat)
-				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-nat.conf" ]]; then
+				if _opt_is overwrite yes || [[ ! -f "/etc/netns-helper/ns/$NS-nat.conf" ]]; then
 					[[ -f "/etc/netns-helper/ns/$NS-nat.conf" ]] && \
 						echo "Configuration file \`/etc/netns-helper/ns/$NS-nat.conf\` overwritten."
 						
 					umask 022
 					cat > "/etc/netns-helper/ns/$NS-nat.conf" <<- EOF
-						parent_if=$opt_parent_if
-						ipaddr4=$opt_ipaddr4
-						ipaddr4_peer=$opt_ipaddr4_peer
-						default_gateway4=$opt_default_gateway4
-						ipaddr6=$opt_ipaddr6
-						ipaddr6_peer=$opt_ipaddr6_peer
-						default_gateway6=$opt_default_gateway6
-						gateway_metric=$opt_gateway_metric
+						parent_if=${opts[parent_if]:-}
+						ipaddr4=${opts[ipaddr4]:-}
+						ipaddr4_peer=${opts[ipaddr4_peer]:-}
+						default_gateway4=${opts[default_gateway4]:-}
+						ipaddr6=${opts[ipaddr6]:-}
+						ipaddr6_peer=${opts[ipaddr6_peer]:-}
+						default_gateway6=${opts[default_gateway6]:-}
+						gateway_metric=${opts[gateway_metric]:-}
 					EOF
 				fi
 			;;
 			
 			bridged)
-				if [[ "$opt_overwrite" == 'yes' || ! -f "/etc/netns-helper/ns/$NS-bridged.conf" ]]; then
+				if _opt_is overwrite yes || [[ ! -f "/etc/netns-helper/ns/$NS-bridged.conf" ]]; then
+					_has_opt bridge_interface || \
+						{
+							>&2 echo "The bridge interface must be specified with option \`--bridge_interface <interface>\`."
+							exit 1
+						}
+						
 					[[ -f "/etc/netns-helper/ns/$NS-bridged.conf" ]] && \
 						echo "Configuration file \`/etc/netns-helper/ns/$NS-bridged.conf\` overwritten."
 						
 					umask 022
 					cat > "/etc/netns-helper/ns/$NS-bridged.conf" <<- EOF
-						bridge_interface=$opt_bridge_interface
-						mac=$opt_mac
-						ipaddr4_peer=$opt_ipaddr4_peer
-						ipaddr4_peer=$opt_ipaddr4_peer
-						default_gateway4=$opt_default_gateway4
-						ipaddr6_peer=$opt_ipaddr6_peer
-						default_gateway6=$opt_default_gateway6
-						gateway_metric=$opt_gateway_metric
+						bridge_interface=${opts[bridge_interface]}
+						mac=${opts[mac]:-}
+						ipaddr4_peer=${opts[ipaddr4_peer]:-}
+						default_gateway4=${opts[default_gateway4]:-}
+						ipaddr6_peer=${opts[ipaddr6_peer]:-}
+						default_gateway6=${opts[default_gateway6]:-}
+						gateway_metric=${opts[gateway_metric]:-}
 					EOF
 				fi
 			;;
@@ -304,7 +307,7 @@ get_namespaces()
 		namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --plain --full \
 			| sed -r 's/^(\s*)netns-helper@(\S+)\.target(.*)/\2/')
 	else
-		namespaces=($ns)
+		namespaces="$ns"
 	fi
 }
 
@@ -339,7 +342,7 @@ case ${pargs[0]:-} in
 		
 		systemctl daemon-reload
 		
-		if [[ "$opt_now" == 'yes' ]]; then
+		if _opt_is now yes; then
 			systemctl restart $service
 		fi
 		
@@ -353,7 +356,7 @@ case ${pargs[0]:-} in
 		
 		systemctl daemon-reload
 		
-		if [[ "$opt_now" == 'yes' ]]; then
+		if _opt_is now yes; then
 			systemctl restart $service
 		fi
 		
