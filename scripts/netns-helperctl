@@ -53,7 +53,7 @@ case $cmd in
 				echo "Creating macvlan interface in $ns with $parent_if."
 
 				# Setup macvlan interface and link it to parent interface.
-				ip link add nm_$ns link $parent_if type macvlan mode ${macvlan_mode-bridge} || \
+				ip link add nm_$ns link $parent_if type macvlan mode ${macvlan_mode:-bridge} || \
 					{
 						>&2 echo 'Failed to create macvlan interface.'
 						exit 1
