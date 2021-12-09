@@ -403,6 +403,41 @@ bridge_interface=
 				</varlistentry>
 				
 				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-macvlan-down</command></term>
+					<para>Executed if present and executable just before a macvlan interface is going to be deleted. The first argument passed will be the name of the macvlan interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-nat-preup</command></term>
+					<para>Executed if present and executable before a veth interface is set as up for nat feature. The first argument passed will be the name of the veth peer interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-nat-postup</command></term>
+					<para>Executed if present and executable after a veth interface is set as up and configured for nat feature. The first argument passed will be the name of the veth peer interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-nat-down</command></term>
+					<para>Executed if present and executable just before a veth interface interface is going to be deleted for nat feature. The first argument passed will be the name of the veth peer interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-bridged-preup</command></term>
+					<para>Executed if present and executable before a veth interface is set as up for bridged feature. The first argument passed will be the name of the veth peer interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-bridged-postup</command></term>
+					<para>Executed if present and executable after a veth interface is set as up and configured for bridged feature. The first argument passed will be the name of the veth peer interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
+					<term><command><replaceable>namespace</replaceable>-bridged-down</command></term>
+					<para>Executed if present and executable just before a veth interface interface is going to be deleted for bridged feature. The first argument passed will be the name of the veth peer interface.</para>
+				</varlistentry>
+				
+				<varlistentry>
 					<term><replaceable>namespace</replaceable>-dhclient.conf</term>
 					<para>dhclient configuration file passed with the <option>-cf</option> switch for DHCPv4.</para>
 				</varlistentry>

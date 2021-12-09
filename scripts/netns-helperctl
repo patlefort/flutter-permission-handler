@@ -122,6 +122,12 @@ case $cmd in
 				;;
 			delete)
 				echo "Deleting macvlan interface in namespace $ns."
+				
+				# Run down script
+				if [[ -x /etc/netns-helper/ns/$ns-macvlan-down ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-down nm_$ns
+				fi
+				
 				ip netns exec $ns ip link delete nm_$ns
 
 				;;
@@ -159,6 +165,11 @@ case $cmd in
 				trap 'veth_failed' ERR
 				
 				ip link set nvp_$ns netns $ns
+				
+				# Run preup script
+				if [[ -x /etc/netns-helper/ns/$ns-nat-preup ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-nat-preup nvp_$ns
+				fi
 				
 				# Configure veth pair
 				if [[ -v ipaddr4 && -n "$ipaddr4" ]]; then
@@ -198,10 +209,21 @@ case $cmd in
 					nft add rule inet nh_nat_$ns postrouting oifname "$parent_if" ip6 saddr $ipaddr6 masquerade
 				fi
 				
+				# Run postup script
+				if [[ -x /etc/netns-helper/ns/$ns-nat-postup ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-nat-postup nvp_$ns
+				fi
+				
 			;;
 			
 			delete)
 				echo "Deleting veth interface in namespace $ns."
+				
+				# Run down script
+				if [[ -x /etc/netns-helper/ns/$ns-nat-down ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-nat-down nvp_$ns
+				fi
+				
 				ip link delete nv_$ns || true
 				nft delete table inet nh_nat_$ns
 				
@@ -238,6 +260,11 @@ case $cmd in
 				# Configure veth pair
 				ip link set nbp_$ns netns $ns
 				
+				# Run preup script
+				if [[ -x /etc/netns-helper/ns/$ns-bridged-preup ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-bridged-preup nbp_$ns
+				fi
+				
 				if [[ -v mac && -n "$mac" ]]; then
 					ip netns exec $ns ip link set nbp_$ns address $mac
 				fi
@@ -271,12 +298,24 @@ case $cmd in
 				fi
 				
 				ip link set nb_$ns master $bridge_interface
+				
+				# Run postup script
+				if [[ -x /etc/netns-helper/ns/$ns-bridged-postup ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-bridged-postup nbp_$ns
+				fi
+				
 				echo "Interface added to bridge $bridge_interface."
 			
 			;;
 			
 			delete)
 				echo "Deleting veth interface in namespace $ns."
+				
+				# Run down script
+				if [[ -x /etc/netns-helper/ns/$ns-bridged-down ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-bridged-down nbp_$ns
+				fi
+				
 				ip link delete nb_$ns
 				
 			;;
