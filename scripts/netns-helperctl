@@ -85,7 +85,7 @@ case $cmd in
 				
 				# Run preup script
 				if [[ -x /etc/netns-helper/ns/$ns-macvlan-preup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-preup nm_$ns
+					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-preup nm_$ns
 				fi
 				
 				ip netns exec $ns ip link set nm_$ns up
@@ -116,7 +116,7 @@ case $cmd in
 				
 				# Run postup script
 				if [[ -x /etc/netns-helper/ns/$ns-macvlan-postup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-postup nm_$ns
+					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-postup nm_$ns
 				fi
 
 				;;
