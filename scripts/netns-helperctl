@@ -66,13 +66,13 @@ case $cmd in
 						exit 1
 					}
 				
-				macvlan_failed()
+				_macvlan_failed()
 				{
 					# Delete interface on failure
 					ip netns exec $ns ip link delete nm_$ns
 				}
 					
-				trap 'macvlan_failed' ERR
+				trap '_macvlan_failed' ERR
 				
 				if [[ -v mac && -n "$mac" ]]; then
 					ip netns exec $ns ip link set nm_$ns address $mac
@@ -156,13 +156,13 @@ case $cmd in
 				# Create a veth pair
 				ip link add nv_$ns type veth peer name nvp_$ns
 				
-				veth_failed()
+				_veth_failed()
 				{
 					# Delete interface on failure
 					ip link delete nv_$ns
 				}
 				
-				trap 'veth_failed' ERR
+				trap '_veth_failed' ERR
 				
 				ip link set nvp_$ns netns $ns
 				
@@ -249,13 +249,13 @@ case $cmd in
 				# Create a veth pair
 				ip link add nb_$ns type veth peer name nbp_$ns
 				
-				veth_failed()
+				_veth_failed()
 				{
 					# Delete interface on failure
 					ip link delete nb_$ns
 				}
 				
-				trap 'veth_failed' ERR
+				trap '_veth_failed' ERR
 				
 				# Configure veth pair
 				ip link set nbp_$ns netns $ns

@@ -182,7 +182,7 @@ echo_subtitle()
 
 read_service()
 {
-	service="$1"
+	local service="$1"
 	
 	[[ -n "$service" ]] || \
 		{
