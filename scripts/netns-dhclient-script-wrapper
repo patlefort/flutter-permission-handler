@@ -1,9 +1,10 @@
-#!/usr/bin/env -S sh -eu
+#!/usr/bin/env -S bash -eu
 
 dhclient-script "$@"
 
-if grep -q '.dhclient-new' "$(which dhclient-script)"; then
-	cat /etc/resolv.conf.dhclient-new* > '/etc/resolv.conf' && \
-		rm -f /etc/resolv.conf.dhclient-new*
-	chmod o+r '/etc/resolv.conf'
-fi
+while read -d $'\0' _resolvfile; do
+	cat "$_resolvfile" > '/etc/resolv.conf' && \
+		rm -f "$_resolvfile"
+done < <(find /etc -type f -mindepth 1 -maxdepth 1 -iname 'resolv.conf.dhclient-new*' -print0)
+
+chmod o+r '/etc/resolv.conf'
