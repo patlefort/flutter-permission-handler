@@ -22,7 +22,13 @@ transmission-daemon will then run inside the network namespace "torrents" with a
 
 On Arch Linux, simply install package `netns-helper-git` from the AUR.
 
-For manually installing, you can use the `install.sh` script. Run as root, specify the prefix with `PREFIX` environment variable (default to `/usr/local`). Then run `systemctl daemon-reload`. This will not install the manual pages. You can generate manual pages with command `xsltproc 'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl' man/manual.xml`. This will generate man pages in the current directory. Then move the generated man files into `$PREFIX/share/man/man1`. `DESTDIR` can be defined for installing into a different directory for preparing a package.
+For manually installing, the usual cmake commands:
+
+```sh
+cmake <source path>
+cmake --build .
+cmake --install .
+```
 
 ## Documentation
 
