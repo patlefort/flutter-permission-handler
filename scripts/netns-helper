@@ -3,7 +3,7 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-avail_features=(dhcp dhcp6 macvlan nat bridged)
+avail_features=(dhcp dhcp6 macvlan nat bridged dnsmasq dhcpcd)
 
 declare -A opts
 
@@ -113,8 +113,8 @@ _has_opt()
 	return 1
 }
 
-if _opt_is help yes; then
-	
+show_help()
+{
 	cat <<-EOF
 		Switches:
 		  --now                          Start, restart or stop services now.
@@ -138,12 +138,13 @@ if _opt_is help yes; then
 		  purge <namespace>
 		  add-service <service> <namespace>
 		  remove-service <service>
-		  status [<namespace>]
-		  start|restart|stop [<namespace>]
+		  status [<namespace>] [<list of features>]
+		  start|restart|stop [<namespace>] [<list of features>]
 		  addr [<namespace>]
 		  route [<namespace>]
 		  ruleset [<namespace>]
 		  exec [<namespace>] -- <command>
+		  help
 		
 		Features:
 		  dhcp                           Start a dhcp client inside namespace.
@@ -152,9 +153,11 @@ if _opt_is help yes; then
 		  nat                            Connect to network with a veth pair and NAT.
 		  bridged                        Create a veth pair inside namespace and add it to a bridge.
 	EOF
-	
+}
+
+if _opt_is help yes; then
+	show_help
 	exit
-	
 fi
 
 flags=()
@@ -293,6 +296,11 @@ add_features()
 					EOF
 				fi
 			;;
+
+			dnsmasq)
+				[[ ! -f "/etc/netns-helper/ns/$NS-dnsmasq.conf" ]] && \
+					touch "/etc/netns-helper/ns/$NS-dnsmasq.conf"
+			;;
 		esac
 		
 		systemctl enable netns-helper-$feature@$NS.service "${flags[@]}"
@@ -312,6 +320,10 @@ get_namespaces()
 }
 
 case ${pargs[0]:-} in
+	help)
+		show_help
+	;;
+
 	add-service)
 		read_service "${pargs[1]:-}"
 		ns=${pargs[2]:-}
@@ -421,38 +433,74 @@ case ${pargs[0]:-} in
 	;;
 	
 	status)
-		get_namespaces ${pargs[1]:-}
+		get_namespaces "${pargs[1]:-}"
 		
 		for n in $namespaces; do
 			echo_title $n
-			systemctl list-dependencies netns-helper@$n.target
+
+			features=(${pargs[@]:2})
+			
+			if [[ ${#features[@]} == 0 ]]; then
+				systemctl list-dependencies netns-helper@$n.target
+			else
+				for feature in ${features[@]}; do
+					systemctl status netns-helper-$feature@$n.service
+				done
+			fi
 		done
 	;;
 	
 	start)
-		get_namespaces ${pargs[1]:-}
+		get_namespaces "${pargs[1]:-}"
 		
 		for n in $namespaces; do
 			echo "Starting namespace \`$n\`..."
 			systemctl start netns-helper@$n.target
+
+			features=(${pargs[@]:2})
+			
+			if [[ ${#features[@]} > 0 ]]; then
+				for feature in ${features[@]}; do
+					echo "Starting feature \`$feature\` in \`$n\`..."
+					systemctl start netns-helper-$feature@$n.service "${flags[@]}"
+				done
+			fi
 		done
 	;;
 	
 	stop)
-		get_namespaces ${pargs[1]:-}
+		get_namespaces "${pargs[1]:-}"
 		
 		for n in $namespaces; do
-			echo "Stopping namespace \`$n\`..."
-			systemctl stop netns-helper@$n.target
+			features=(${pargs[@]:2})
+			
+			if [[ ${#features[@]} == 0 ]]; then
+				echo "Stopping namespace \`$n\`..."
+				systemctl stop netns-helper@$n.target
+			else
+				for feature in ${features[@]}; do
+					echo "Stopping feature \`$feature\` in \`$n\`..."
+					systemctl stop netns-helper-$feature@$n.service "${flags[@]}"
+				done
+			fi
 		done
 	;;
 	
 	restart)
-		get_namespaces ${pargs[1]:-}
+		get_namespaces "${pargs[1]:-}"
 		
 		for n in $namespaces; do
-			echo "Restarting namespace \`$n\`..."
-			systemctl restart netns-helper@$n.target
+			features=(${pargs[@]:2})
+			
+			if [[ ${#features[@]} == 0 ]]; then
+				echo "Restarting namespace \`$n\`..."
+				systemctl restart netns-helper@$n.target
+			else
+				for feature in ${features[@]}; do
+					echo "Restarting feature \`$feature\` in \`$n\`..."
+					systemctl restart netns-helper-$feature@$n.service "${flags[@]}"
+				done
+			fi
 		done
 	;;
 	

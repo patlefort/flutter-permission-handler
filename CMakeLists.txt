@@ -33,7 +33,7 @@ endforeach()
 if(NETNS_HELPER_MAN)
 	file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/man")
 	
-	set(man_names netns-helper.1 netns-helper-config.1 netns-helper-services.1)
+	set(man_names netns-helper.1 netns-helper-config.1)
 	set(man_files)
 	foreach(man_name IN LISTS man_names)
 		list(APPEND man_files "${CMAKE_BINARY_DIR}/man/${man_name}")

@@ -1,5 +1,6 @@
 [Unit]
 Description=Run dhclient in a network namespace.
+Documentation=man:dhclient(8)
 After=netns-helper@%i.service
 Before=netns-helper-postup@%i.service
 BindsTo=netns-helper@%i.service
@@ -18,9 +19,11 @@ BindPaths=-/etc/netns/%i/nsswitch.conf:/etc/nsswitch.conf
 
 ExecStart=dhclient -4 -d -sf "${DHCLIENT_SCRIPT_WRAPPER}" -pf %t/netns-helper-%i/dhclient.pid -lf %t/netns-helper-%i/dhclient.lease -cf "/etc/netns-helper/ns/%i-dhclient.conf"
 
+PrivateDevices=true
 PrivateNetwork=true
 ProtectSystem=true
 ProtectHome=true
+PrivateTmp=true
 
 [Install]
 RequiredBy=netns-helper@%i.target

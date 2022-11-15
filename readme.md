@@ -10,13 +10,13 @@ netns-helper provides some systemd services to help with the creation of network
 Enable network namespace services and add transmission-daemon service to namespace:
 
 ```sh
-sudo netns-helper enable torrents macvlan dhcp --parent_if <interface> --now
+sudo netns-helper enable torrents macvlan dhcpcd dnsmasq --parent_if <interface> --now
 sudo netns-helper add-service transmission-daemon torrents --now
 ```
 
 **Read the DNS section in the manual to make sure name resolution is working properly.**
 
-transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations. You can enable DHCPv6 with `sudo netns-helper enable torrents dhcp6 --now`.
+transmission-daemon will then run inside the network namespace "torrents" with a macvlan interface configured via dhcp. It will basically run with its own MAC address and IP address like a separate machine on your network, with the exception of some macvlan limitations.
 
 ## Installation
 

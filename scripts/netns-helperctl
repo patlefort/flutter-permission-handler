@@ -21,22 +21,36 @@ case $cmd in
 				flock --no-fork -- /var/run/netns.lock ip netns add $ns
 				umount /var/run/netns/$ns
 				mount --bind /proc/self/ns/net /var/run/netns/$ns
+
+				touch "$RUNTIME_DIRECTORY/resolvconf-dnsmasq.conf"
+				touch "$RUNTIME_DIRECTORY/resolvconf-dnsmasq-resolv.conf"
+
+				cat > "$RUNTIME_DIRECTORY/resolvconf.conf" <<- EOF
+					name_servers="127.0.0.1"
+					dnsmasq_conf=$RUNTIME_DIRECTORY/resolvconf-dnsmasq.conf
+					dnsmasq_resolv=$RUNTIME_DIRECTORY/resolvconf-dnsmasq-resolv.conf
+				EOF
+
+				if [[ -x /etc/netns-helper/ns/$ns-postcreate ]]; then
+					ip netns exec $ns /etc/netns-helper/ns/$ns-postcreate
+				fi
 				
-				;;
+			;;
 
 			delete)
 				echo "Deleting network namespace $ns."
 
 				flock --no-fork -- /var/run/netns.lock ip netns delete $ns
 
-				;;
+			;;
+
 			*)
 				>&2 echo 'Invalid command.'
 				exit 1
-				;;
+			;;
 		esac
 
-		;;
+	;;
 
 	macvlan)
 
@@ -119,7 +133,8 @@ case $cmd in
 					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-postup nm_$ns
 				fi
 
-				;;
+			;;
+
 			delete)
 				echo "Deleting macvlan interface in namespace $ns."
 				
@@ -130,14 +145,15 @@ case $cmd in
 				
 				ip netns exec $ns ip link delete nm_$ns
 
-				;;
+			;;
+
 			*)
 				>&2 echo 'Invalid command.'
 				exit 1
-				;;
+			;;
 		esac
 
-		;;
+	;;
 		
 	nat)
 
@@ -329,10 +345,10 @@ case $cmd in
 			/etc/netns-helper/ns/$ns-postup
 		fi
 		
-		;;
+	;;
 		
 	*)
 		>&2 echo 'Invalid command.'
 		exit 1
-		;;
+	;;
 esac
