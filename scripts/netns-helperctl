@@ -22,8 +22,8 @@ case $cmd in
 				umount /var/run/netns/$ns
 				mount --bind /proc/self/ns/net /var/run/netns/$ns
 
-				touch "$RUNTIME_DIRECTORY/resolvconf-dnsmasq.conf"
-				touch "$RUNTIME_DIRECTORY/resolvconf-dnsmasq-resolv.conf"
+				[[ ! -f "$RUNTIME_DIRECTORY/resolvconf-dnsmasq.conf" ]] && touch "$RUNTIME_DIRECTORY/resolvconf-dnsmasq.conf"
+				[[ ! -f "$RUNTIME_DIRECTORY/resolvconf-dnsmasq-resolv.conf" ]] && touch "$RUNTIME_DIRECTORY/resolvconf-dnsmasq-resolv.conf"
 
 				cat > "$RUNTIME_DIRECTORY/resolvconf.conf" <<- EOF
 					name_servers="127.0.0.1"
@@ -34,14 +34,12 @@ case $cmd in
 				if [[ -x /etc/netns-helper/ns/$ns-postcreate ]]; then
 					ip netns exec $ns /etc/netns-helper/ns/$ns-postcreate
 				fi
-				
 			;;
 
 			delete)
 				echo "Deleting network namespace $ns."
 
 				flock --no-fork -- /var/run/netns.lock ip netns delete $ns
-
 			;;
 
 			*)
@@ -144,7 +142,6 @@ case $cmd in
 				fi
 				
 				ip netns exec $ns ip link delete nm_$ns
-
 			;;
 
 			*)
@@ -333,7 +330,6 @@ case $cmd in
 				fi
 				
 				ip link delete nb_$ns
-				
 			;;
 		esac
 	
