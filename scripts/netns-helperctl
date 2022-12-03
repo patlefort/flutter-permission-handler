@@ -29,6 +29,7 @@ case $cmd in
 					name_servers="127.0.0.1"
 					dnsmasq_conf=$RUNTIME_DIRECTORY/resolvconf-dnsmasq.conf
 					dnsmasq_resolv=$RUNTIME_DIRECTORY/resolvconf-dnsmasq-resolv.conf
+					resolv_conf=/etc/netns/$ns/resolv.conf
 				EOF
 
 				if [[ -x /etc/netns-helper/ns/$ns-postcreate ]]; then
