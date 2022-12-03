@@ -343,7 +343,7 @@ sudo netns-helper add-service transmission-daemon torrents --now
 		
 		<refmeta>
 			<refentrytitle>netns-helper-config</refentrytitle>
-			<manvolnum>1</manvolnum>
+			<manvolnum>5</manvolnum>
 		</refmeta>
 		
 		<refmiscinfo source="netns-helper-config" />
