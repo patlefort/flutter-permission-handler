@@ -32,4 +32,4 @@ cmake --install .
 
 ## Documentation
 
-See manual pages (netns-helper, netns-helper-config, netns-helper-services).
+See manual pages (netns-helper, netns-helper-config).
