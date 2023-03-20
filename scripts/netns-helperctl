@@ -6,6 +6,8 @@ shopt -s inherit_errexit
 ns=$1
 cmd=$2
 
+config_dir='/etc/netns-helper'
+
 case $cmd in
 	netns)
 		
@@ -32,8 +34,8 @@ case $cmd in
 					resolv_conf=/etc/netns/$ns/resolv.conf
 				EOF
 
-				if [[ -x /etc/netns-helper/ns/$ns-postcreate ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-postcreate
+				if [[ -x "$config_dir/ns/$ns-postcreate" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-postcreate"
 				fi
 			;;
 
@@ -56,12 +58,12 @@ case $cmd in
 		case $3 in
 			create)
 				# Read config
-				if [[ ! -f /etc/netns-helper/ns/$ns-macvlan.conf ]]; then
-					>&2 echo "File /etc/netns-helper/ns/$ns-macvlan.conf not found, exiting."
+				if [[ ! -f "$config_dir/ns/$ns-macvlan.conf" ]]; then
+					>&2 echo "File $config_dir/ns/$ns-macvlan.conf not found, exiting."
 					exit 1
 				fi
 				
-				source /etc/netns-helper/ns/$ns-macvlan.conf
+				source "$config_dir/ns/$ns-macvlan.conf"
 				
 				echo "Creating macvlan interface in $ns with $parent_if."
 
@@ -97,8 +99,8 @@ case $cmd in
 				fi
 				
 				# Run preup script
-				if [[ -x /etc/netns-helper/ns/$ns-macvlan-preup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-preup nm_$ns
+				if [[ -x "$config_dir/ns/$ns-macvlan-preup" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-macvlan-preup" nm_$ns
 				fi
 				
 				ip netns exec $ns ip link set nm_$ns up
@@ -128,8 +130,8 @@ case $cmd in
 				mkdir -p /run/netmachine/$ns
 				
 				# Run postup script
-				if [[ -x /etc/netns-helper/ns/$ns-macvlan-postup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-postup nm_$ns
+				if [[ -x "$config_dir/ns/$ns-macvlan-postup" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-macvlan-postup" nm_$ns
 				fi
 
 			;;
@@ -138,8 +140,8 @@ case $cmd in
 				echo "Deleting macvlan interface in namespace $ns."
 				
 				# Run down script
-				if [[ -x /etc/netns-helper/ns/$ns-macvlan-down ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-macvlan-down nm_$ns
+				if [[ -x "$config_dir/ns/$ns-macvlan-down" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-macvlan-down" nm_$ns
 				fi
 				
 				ip netns exec $ns ip link delete nm_$ns
@@ -158,12 +160,12 @@ case $cmd in
 		case $3 in
 			create)
 				# Read config
-				if [[ ! -f /etc/netns-helper/ns/$ns-nat.conf ]]; then
-					>&2 echo "File /etc/netns-helper/ns/$ns-nat.conf not found, exiting."
+				if [[ ! -f "$config_dir/ns/$ns-nat.conf" ]]; then
+					>&2 echo "File $config_dir/ns/$ns-nat.conf not found, exiting."
 					exit 1
 				fi
 				
-				source /etc/netns-helper/ns/$ns-nat.conf
+				source "$config_dir/ns/$ns-nat.conf"
 				
 				echo "Creating veth interface in $ns."
 
@@ -181,8 +183,8 @@ case $cmd in
 				ip link set nvp_$ns netns $ns
 				
 				# Run preup script
-				if [[ -x /etc/netns-helper/ns/$ns-nat-preup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-nat-preup nvp_$ns
+				if [[ -x "$config_dir/ns/$ns-nat-preup" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-nat-preup" nvp_$ns
 				fi
 				
 				# Configure veth pair
@@ -224,8 +226,8 @@ case $cmd in
 				fi
 				
 				# Run postup script
-				if [[ -x /etc/netns-helper/ns/$ns-nat-postup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-nat-postup nvp_$ns
+				if [[ -x "$config_dir/ns/$ns-nat-postup" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-nat-postup" nvp_$ns
 				fi
 				
 			;;
@@ -234,8 +236,8 @@ case $cmd in
 				echo "Deleting veth interface in namespace $ns."
 				
 				# Run down script
-				if [[ -x /etc/netns-helper/ns/$ns-nat-down ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-nat-down nvp_$ns
+				if [[ -x "$config_dir/ns/$ns-nat-down" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-nat-down" nvp_$ns
 				fi
 				
 				ip link delete nv_$ns || true
@@ -251,12 +253,12 @@ case $cmd in
 		case $3 in
 			create)
 				# Read config
-				if [[ ! -f /etc/netns-helper/ns/$ns-bridged.conf ]]; then
-					>&2 echo "File /etc/netns-helper/ns/$ns-bridged.conf not found, exiting."
+				if [[ ! -f "$config_dir/ns/$ns-bridged.conf" ]]; then
+					>&2 echo "File $config_dir/ns/$ns-bridged.conf not found, exiting."
 					exit 1
 				fi
 				
-				source /etc/netns-helper/ns/$ns-bridged.conf
+				source "$config_dir/ns/$ns-bridged.conf"
 			
 				echo "Creating veth interface in $ns."
 				
@@ -275,8 +277,8 @@ case $cmd in
 				ip link set nbp_$ns netns $ns
 				
 				# Run preup script
-				if [[ -x /etc/netns-helper/ns/$ns-bridged-preup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-bridged-preup nbp_$ns
+				if [[ -x "$config_dir/ns/$ns-bridged-preup" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-bridged-preup" nbp_$ns
 				fi
 				
 				if [[ -v mac && -n "$mac" ]]; then
@@ -314,8 +316,8 @@ case $cmd in
 				ip link set nb_$ns master $bridge_interface
 				
 				# Run postup script
-				if [[ -x /etc/netns-helper/ns/$ns-bridged-postup ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-bridged-postup nbp_$ns
+				if [[ -x "$config_dir/ns/$ns-bridged-postup" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-bridged-postup" nbp_$ns
 				fi
 				
 				echo "Interface added to bridge $bridge_interface."
@@ -326,8 +328,8 @@ case $cmd in
 				echo "Deleting veth interface in namespace $ns."
 				
 				# Run down script
-				if [[ -x /etc/netns-helper/ns/$ns-bridged-down ]]; then
-					ip netns exec $ns /etc/netns-helper/ns/$ns-bridged-down nbp_$ns
+				if [[ -x "$config_dir/ns/$ns-bridged-down" ]]; then
+					ip netns exec $ns "$config_dir/ns/$ns-bridged-down" nbp_$ns
 				fi
 				
 				ip link delete nb_$ns
@@ -338,8 +340,8 @@ case $cmd in
 		
 	postup)
 		
-		if [[ -x /etc/netns-helper/ns/$ns-postup ]]; then
-			/etc/netns-helper/ns/$ns-postup
+		if [[ -x "$config_dir/ns/$ns-postup" ]]; then
+			"$config_dir/ns/$ns-postup"
 		fi
 		
 	;;

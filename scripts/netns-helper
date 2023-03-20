@@ -4,6 +4,7 @@ set -euo pipefail
 shopt -s inherit_errexit
 
 avail_features=(dhcp dhcp6 macvlan nat bridged dnsmasq dhcpcd)
+config_dir='/etc/netns-helper'
 
 declare -A opts
 
@@ -223,21 +224,23 @@ add_features()
 			}
 	done
 	
+	mkdir -p "$config_dir/ns"
+	
 	for feature in "$@"; do
 		case "$feature" in
 			macvlan)
-				if _opt_is overwrite yes || [[ ! -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]]; then
+				if _opt_is overwrite yes || [[ ! -f "$config_dir/ns/$NS-macvlan.conf" ]]; then
 					_has_opt parent_if || \
 						{
 							>&2 echo "The parent interface of the macvlan interface must be specified with option \`--parent_if <interface>\`."
 							exit 1
 						}
 						
-					[[ -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]] && \
-						echo "Configuration file \`/etc/netns-helper/ns/$NS-macvlan.conf\` overwritten."
+					[[ -f "$config_dir/ns/$NS-macvlan.conf" ]] && \
+						echo "Configuration file \`$config_dir/ns/$NS-macvlan.conf\` overwritten."
 						
 					umask 022
-					cat > "/etc/netns-helper/ns/$NS-macvlan.conf" <<- EOF
+					cat > "$config_dir/ns/$NS-macvlan.conf" <<- EOF
 						parent_if=${opts[parent_if]}
 						mac=${opts[mac]:-}
 						macvlan_mode=${opts[macvlan_mode]:-}
@@ -249,18 +252,18 @@ add_features()
 						gateway_metric=${opts[gateway_metric]:-}
 					EOF
 				else
-					[[ -f "/etc/netns-helper/ns/$NS-macvlan.conf" ]] && \
-						echo "Configuration file \`/etc/netns-helper/ns/$NS-macvlan.conf\` already exists and will not be overwritten."
+					[[ -f "$config_dir/ns/$NS-macvlan.conf" ]] && \
+						echo "Configuration file \`$config_dir/ns/$NS-macvlan.conf\` already exists and will not be overwritten."
 				fi
 			;;
 			
 			nat)
-				if _opt_is overwrite yes || [[ ! -f "/etc/netns-helper/ns/$NS-nat.conf" ]]; then
-					[[ -f "/etc/netns-helper/ns/$NS-nat.conf" ]] && \
-						echo "Configuration file \`/etc/netns-helper/ns/$NS-nat.conf\` overwritten."
+				if _opt_is overwrite yes || [[ ! -f "$config_dir/ns/$NS-nat.conf" ]]; then
+					[[ -f "$config_dir/ns/$NS-nat.conf" ]] && \
+						echo "Configuration file \`$config_dir/ns/$NS-nat.conf\` overwritten."
 						
 					umask 022
-					cat > "/etc/netns-helper/ns/$NS-nat.conf" <<- EOF
+					cat > "$config_dir/ns/$NS-nat.conf" <<- EOF
 						parent_if=${opts[parent_if]:-}
 						ipaddr4=${opts[ipaddr4]:-}
 						ipaddr4_peer=${opts[ipaddr4_peer]:-}
@@ -274,18 +277,18 @@ add_features()
 			;;
 			
 			bridged)
-				if _opt_is overwrite yes || [[ ! -f "/etc/netns-helper/ns/$NS-bridged.conf" ]]; then
+				if _opt_is overwrite yes || [[ ! -f "$config_dir/ns/$NS-bridged.conf" ]]; then
 					_has_opt bridge_interface || \
 						{
 							>&2 echo "The bridge interface must be specified with option \`--bridge_interface <interface>\`."
 							exit 1
 						}
 						
-					[[ -f "/etc/netns-helper/ns/$NS-bridged.conf" ]] && \
-						echo "Configuration file \`/etc/netns-helper/ns/$NS-bridged.conf\` overwritten."
+					[[ -f "$config_dir/ns/$NS-bridged.conf" ]] && \
+						echo "Configuration file \`$config_dir/ns/$NS-bridged.conf\` overwritten."
 						
 					umask 022
-					cat > "/etc/netns-helper/ns/$NS-bridged.conf" <<- EOF
+					cat > "$config_dir/ns/$NS-bridged.conf" <<- EOF
 						bridge_interface=${opts[bridge_interface]}
 						mac=${opts[mac]:-}
 						ipaddr4_peer=${opts[ipaddr4_peer]:-}
@@ -298,8 +301,8 @@ add_features()
 			;;
 
 			dnsmasq)
-				[[ ! -f "/etc/netns-helper/ns/$NS-dnsmasq.conf" ]] && \
-					touch "/etc/netns-helper/ns/$NS-dnsmasq.conf"
+				[[ ! -f "$config_dir/ns/$NS-dnsmasq.conf" ]] && \
+					touch "$config_dir/ns/$NS-dnsmasq.conf"
 			;;
 		esac
 		
