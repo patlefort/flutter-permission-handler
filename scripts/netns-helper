@@ -328,7 +328,8 @@ case ${pargs[0]:-} in
 	;;
 
 	add-service)
-		read_service "${pargs[1]:-}"
+		service="${pargs[1]}"
+		read_service "$service"
 		ns=${pargs[2]:-}
 		
 		[[ -n "$ns" ]] || \
@@ -365,7 +366,8 @@ case ${pargs[0]:-} in
 	;;
 	
 	remove-service)
-		read_service "${pargs[1]}"
+		service="${pargs[1]}"
+		read_service "$service"
 		
 		rm -f "/etc/systemd/system/$service.d/netns-helper.conf"
 		
