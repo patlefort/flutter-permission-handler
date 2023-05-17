@@ -203,6 +203,8 @@ read_service()
 			>&2 echo "Service \`$service\` not found."
 			return 1
 		}
+		
+	echo "$service"
 }
 
 feature_is_valid()
@@ -328,8 +330,7 @@ case ${pargs[0]:-} in
 	;;
 
 	add-service)
-		service="${pargs[1]}"
-		read_service "$service"
+		service="$(read_service "${pargs[1]}")"
 		ns=${pargs[2]:-}
 		
 		[[ -n "$ns" ]] || \
@@ -366,8 +367,7 @@ case ${pargs[0]:-} in
 	;;
 	
 	remove-service)
-		service="${pargs[1]}"
-		read_service "$service"
+		service="$(read_service "${pargs[1]}")"
 		
 		rm -f "/etc/systemd/system/$service.d/netns-helper.conf"
 		
