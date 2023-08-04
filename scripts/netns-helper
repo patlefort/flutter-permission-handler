@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+#set -x
 shopt -s inherit_errexit
 
 avail_features=(dhcp dhcp6 macvlan nat bridged dnsmasq dhcpcd)
@@ -153,6 +154,8 @@ show_help()
 		  macvlan                        Create a macvlan interface inside namespace.
 		  nat                            Connect to network with a veth pair and NAT.
 		  bridged                        Create a veth pair inside namespace and add it to a bridge.
+		  dnsmasq                        Use dnsmasq for DNS resolution inside namespace.
+		  dhcpcd                         Use dhcpcd for DHCP inside namespace.
 	EOF
 }
 

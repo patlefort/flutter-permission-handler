@@ -17,6 +17,7 @@ ExecStart=@PREFIX@/lib/netns-helper/netns-helperctl %i netns create
 ExecStop=@PREFIX@/lib/netns-helper/netns-helperctl %i netns delete
 
 PrivateNetwork=true
+PrivateMounts=false
 ProtectHostname=true
 ProtectClock=true
 
