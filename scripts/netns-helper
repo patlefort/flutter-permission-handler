@@ -105,14 +105,12 @@ done
 
 _opt_is()
 {
-	[[ -v opts["$1"] && "${opts["$1"]}" == "$2" ]] && return 0
-	return 1
+	[[ -v opts["$1"] && "${opts["$1"]}" == "$2" ]]
 }
 
 _has_opt()
 {
-	[[ -v opts["$1"] && -n "${opts["$1"]}" ]] && return 0
-	return 1
+	[[ -v opts["$1"] && -n "${opts["$1"]}" ]]
 }
 
 show_help()
