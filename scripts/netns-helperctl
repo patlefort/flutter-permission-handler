@@ -3,10 +3,10 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-ns=$1
-cmd=$2
+readonly ns=$1
+readonly cmd=$2
 
-config_dir='/etc/netns-helper'
+readonly config_dir='/etc/netns-helper'
 
 case $cmd in
 	netns)

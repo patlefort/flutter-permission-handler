@@ -1,6 +1,6 @@
 _netns_helper_systemctl()
 {
-	local mode=$1; shift 1
+	local -r mode=$1; shift 1
 	systemctl $mode --full --legend=no --no-pager --plain "$@" 2>/dev/null
 }
 
@@ -17,7 +17,7 @@ _netns_helper_find_services()
 
 _netns_helper_find_namespace_services()
 {
-	local namespaces=$(_netns_helper_find_namespaces)
+	local -r namespaces=$(_netns_helper_find_namespaces)
 	
 	for ns in $namespaces; do
 		_netns_helper_systemctl --system list-dependencies "netns-helper@${ns}.target" \

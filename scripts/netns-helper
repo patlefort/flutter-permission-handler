@@ -4,8 +4,8 @@ set -euo pipefail
 #set -x
 shopt -s inherit_errexit
 
-avail_features=(dhcp dhcp6 macvlan nat bridged dnsmasq dhcpcd)
-config_dir='/etc/netns-helper'
+readonly avail_features=(dhcp dhcp6 macvlan nat bridged dnsmasq dhcpcd)
+readonly config_dir='/etc/netns-helper'
 
 declare -A opts
 
@@ -169,9 +169,9 @@ tput_checked()
 {
 	tput "$@" 2>/dev/null || true
 }
-ocol_label="$(tput_checked setaf 3)"
-ocol_sublabel="$(tput_checked setaf 5)"
-ocol_reset="$(tput_checked sgr0)"
+readonly ocol_label="$(tput_checked setaf 3)"
+readonly ocol_sublabel="$(tput_checked setaf 5)"
+readonly ocol_reset="$(tput_checked sgr0)"
 
 echo_title()
 {
@@ -216,7 +216,7 @@ feature_is_valid()
 
 add_features()
 {
-	local NS=$1
+	local -r NS=$1
 	shift 1
 	
 	for feature in "$@"; do
@@ -315,7 +315,7 @@ add_features()
 
 get_namespaces()
 {
-	local ns=${1:-}
+	local -r ns=${1:-}
 	
 	if [[ -z $ns ]]; then
 		namespaces=$(systemctl list-units --type target "netns-helper@*.target" --all --no-legend --plain --full \
@@ -331,8 +331,8 @@ case ${pargs[0]:-} in
 	;;
 
 	add-service)
-		service="$(read_service "${pargs[1]}")"
-		ns=${pargs[2]:-}
+		readonly service="$(read_service "${pargs[1]}")"
+		readonly ns=${pargs[2]:-}
 		
 		[[ -n "$ns" ]] || \
 			{
@@ -368,7 +368,7 @@ case ${pargs[0]:-} in
 	;;
 	
 	remove-service)
-		service="$(read_service "${pargs[1]}")"
+		readonly service="$(read_service "${pargs[1]}")"
 		
 		rm -f "/etc/systemd/system/$service.d/netns-helper.conf"
 		
@@ -382,7 +382,7 @@ case ${pargs[0]:-} in
 	;;
 	
 	enable)
-		ns=${pargs[1]:-}
+		readonly ns=${pargs[1]:-}
 		
 		[[ -n "$ns" ]] || \
 			{
@@ -398,7 +398,7 @@ case ${pargs[0]:-} in
 	;;
 	
 	disable)
-		ns=${pargs[1]:-}
+		readonly ns=${pargs[1]:-}
 		
 		[[ -n "$ns" ]] || \
 			{
@@ -420,7 +420,7 @@ case ${pargs[0]:-} in
 	;;
 	
 	purge)
-		ns=${pargs[1]:-}
+		readonly ns=${pargs[1]:-}
 		
 		[[ -n "$ns" ]] || \
 			{
