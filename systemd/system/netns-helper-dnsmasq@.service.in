@@ -12,7 +12,7 @@ Type=simple
 ConfigurationDirectory=netns-helper
 PIDFile=%t/netns-helper-%i/dnsmasq.pid
 ExecStartPre=dnsmasq --test
-ExecStart=dnsmasq -k --interface=lo -z --enable-dbus --cache-size=1000 --user=dnsmasq --pid-file="%t/netns-helper-%i/dnsmasq.pid" --conf-file="/etc/netns-helper/ns/%i-dnsmasq.conf" --conf-file="%t/netns-helper-%i/resolvconf-dnsmasq.conf" --resolv-file="%t/netns-helper-%i/resolvconf-dnsmasq-resolv.conf"
+ExecStart=dnsmasq -k --interface=lo -z --enable-dbus=uk.org.thekelleys.dnsmasq.%i --cache-size=1000 --user=dnsmasq --pid-file="%t/netns-helper-%i/dnsmasq.pid" --conf-file="/etc/netns-helper/ns/%i-dnsmasq.conf" --conf-file="%t/netns-helper-%i/resolvconf-dnsmasq.conf" --resolv-file="%t/netns-helper-%i/resolvconf-dnsmasq-resolv.conf"
 ExecReload=kill -HUP $MAINPID
 
 BindPaths=-/etc/netns/%i/resolv.conf:/etc/resolv.conf
